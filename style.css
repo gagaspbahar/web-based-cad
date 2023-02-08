@@ -1,0 +1,37 @@
+.gl-canvas-container {
+    float: left;
+}
+
+#gl-canvas {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.menu-container {
+    float: right;
+    min-height: 700px;
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.save-or-load {
+    margin-top: 40px;
+}
+
+.shape-option {
+    margin-top: 40px;
+}
+
+.shape-option-input {
+    justify-content: center;
+}
+
+#square, #rectangle, #polygon {
+    margin-left: 20px;
+}
+
+.color {
+    margin-top: 40px;
+}
