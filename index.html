@@ -1,0 +1,32 @@
+<script src="./util/webgl-utils.js"></script>
+<script src="index.js"></script>
+
+<link rel="stylesheet" href="styles.css">
+
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h1>Web Based CAD</h1>
+      <div class="button-group">
+        <button>Line</button>
+        <button>Square</button>
+        <button>Rectangle</button>
+        <button>Polygon</button>
+      </div>
+      <div class="button-group-2">
+        <button>Clear</button>
+        <button>Help</button>
+      </div>
+      <div class="button-group-3">
+        <button>Save</button>
+        <button>Load</button>
+      </div>
+    <div class="color-picker">
+      color picker: 
+      <input type="color" id="color-picker" name="color-picker" value="#000000">
+    </div>
+      
+    </div>
+    <canvas class="gl-canvas" width="512" height="512"></canvas>
+  </div>
+</body>
