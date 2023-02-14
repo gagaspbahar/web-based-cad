@@ -74,6 +74,7 @@ function drawcanvas() {
     if (lines.length != 0) {
         for (var i = 0; i < lines.length; i++) {
             render(gl.LINES, [lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2], [Math.random(), Math.random(), Math.random(), 1])
+            renderCornerPoint([lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2])
         }
     }
 
@@ -109,6 +110,34 @@ const render = (type, vertices, color) => {
     gl.drawArrays(type, 0, vertices.length / 2);
 }
 
+const renderCornerPoint = (shape) => {
+    const points = shape.length / 2
+    console.log(shape)
+    for (var i = 0; i < points; i++) {
+        console.log(shape[i * 2], shape[i * 2 + 1])
+        let x1 = shape[i * 2]
+        let y1 = shape[i * 2 + 1]
+        let x2 = shape[i * 2] + 5
+        let y2 = shape[i * 2 + 1] + 5
+        let vertices = [x1, y1, x2, y1, x1, y2, x2, y2]
+        
+        render(gl.TRIANGLE_STRIP, vertices, [0, 0, 0, 1])
+    }
+}
+
+const findNearestPoint = (x, y) => {
+    var min = 1000000
+    var index = 0
+    for (var i = 0; i < lines.length; i++) {
+        var distance = Math.sqrt(Math.pow(x - lines[i].x1, 2) + Math.pow(y - lines[i].y1, 2))
+        if (distance < min) {
+            min = distance
+            index = i
+        }
+    }
+    return index
+}
+
 canvas.addEventListener("click", function (event) {
     var x = event.clientX;
     var y = event.clientY;
@@ -130,7 +159,9 @@ canvas.addEventListener("click", function (event) {
                 y2: y,
             }
             lines.push(temporaryLine)
-            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])   
+            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])
+
+            renderCornerPoint([temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2])   
         }
         isDrawing = false
     }
