@@ -72,13 +72,8 @@ function drawcanvas() {
 
     // Draw the garis.
     if (lines.length != 0) {
-        primitiveType = gl.LINES;
-        offset = 0;
-        count = 2;
         for (var i = 0; i < lines.length; i++) {
-            createGaris(gl, lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2)
-            gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
-            gl.drawArrays(primitiveType, offset, count);
+            render(gl.LINES, [lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2], [Math.random(), Math.random(), Math.random(), 1])
         }
     }
 
@@ -143,10 +138,11 @@ canvas.addEventListener("click", function (event) {
     // setRectangle(gl, x, y, 50, 50);
     // gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
     // gl.drawArrays(gl.TRIANGLES, 0, 6);
-    // drawcanvas()
+    drawcanvas()
 }, false)
 
 canvas.addEventListener("mousemove", function (event) {
+    drawcanvas()
     if (isDrawing) {
         let x2 = event.clientX;
         let y2 = event.clientY;
