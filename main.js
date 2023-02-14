@@ -4,6 +4,9 @@ var squares = []
 var rectangles = []
 var polygon = []
 
+var currentShape = "line"
+var isDrawing = false
+var temporaryLine = []
 
 // Initialize the WebGL context
 var canvas = document.querySelector('#gl-canvas');
@@ -35,14 +38,7 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
-canvas.addEventListener("click", function (event) {
-    var x = event.clientX;
-    var y = event.clientY;
-    setRectangle(gl, x, y, 50, 50);
-    gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    // drawcanvas()
-}, false)
+
 
 var size = 2;          // 2 components per iteration
 var type = gl.FLOAT;   // the data is 32bit floats
@@ -58,7 +54,7 @@ gl.enableVertexAttribArray(positionAttributeLocation);
     
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-setRectangle(gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
+// setRectangle(gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
 
 
 // Tell WebGL how to convert from clip space to pixels
@@ -80,7 +76,7 @@ function drawcanvas() {
         offset = 0;
         count = 2;
         for (var i = 0; i < lines.length; i++) {
-            createGaris(gl, lines[i].x, lines[i].y, lines[i].width, lines[i].height)
+            createGaris(gl, lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2)
             gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
             gl.drawArrays(primitiveType, offset, count);
         }
@@ -100,5 +96,70 @@ function drawcanvas() {
     }
 
 }
+
+const radioButton = document.querySelectorAll('input[name="shape"]');
+radioButton.forEach((radio) => {
+    radio.addEventListener('change', (event) => {
+        currentShape = event.target.value;
+    });
+})
+
+const render = (type, vertices, color) => {
+    var buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
+    gl.drawArrays(type, 0, vertices.length / 2);
+}
+
+canvas.addEventListener("click", function (event) {
+    var x = event.clientX;
+    var y = event.clientY;
+    if (!isDrawing) {
+        if (currentShape == "line") {
+            temporaryLine = {
+                x1: x,
+                y1: y,
+            }
+        }
+    
+        isDrawing = true
+    } else {
+        if (currentShape == "line") {
+            temporaryLine = {
+                x1: temporaryLine.x1,
+                y1: temporaryLine.y1,
+                x2: x,
+                y2: y,
+            }
+            lines.push(temporaryLine)
+            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])   
+        }
+        isDrawing = false
+    }
+
+    // setRectangle(gl, x, y, 50, 50);
+    // gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
+    // gl.drawArrays(gl.TRIANGLES, 0, 6);
+    // drawcanvas()
+}, false)
+
+canvas.addEventListener("mousemove", function (event) {
+    if (isDrawing) {
+        let x2 = event.clientX;
+        let y2 = event.clientY;
+        if (currentShape == "line") {
+            temporaryLine = {
+                x1: temporaryLine.x1,
+                y1: temporaryLine.y1,
+                x2: x2,
+                y2: y2,
+            }
+            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])   
+        }
+    }
+})
 
 // drawcanvas()
