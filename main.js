@@ -1,8 +1,11 @@
 // Main entry point for the application
-var lines = []
-var squares = []
-var rectangles = []
-var polygon = []
+// Type for shape
+// const shape = {
+//     type: "line",
+//     vertices: [],
+// }
+
+var shapes = []
 
 var currentShape = "line"
 var isDrawing = false
@@ -54,7 +57,6 @@ gl.enableVertexAttribArray(positionAttributeLocation);
     
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-// setRectangle(gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300));
 
 
 // Tell WebGL how to convert from clip space to pixels
@@ -68,26 +70,11 @@ function drawcanvas() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height); 
-    
 
-    // Draw the garis.
-    if (lines.length != 0) {
-        for (var i = 0; i < lines.length; i++) {
-            render(gl.LINES, [lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2], [Math.random(), Math.random(), Math.random(), 1])
-            renderCornerPoint([lines[i].x1, lines[i].y1, lines[i].x2, lines[i].y2])
-        }
-    }
-
-    // Draw the rectangle.
-
-    if (rectangles.length != 0) {
-        primitiveType = gl.TRIANGLES;
-        offset = 0;
-        count = 6;
-        for (var i = 0; i < rectangles.length; i++) {
-            createRectangle(gl, rectangles[i].x, rectangles[i].y, rectangles[i].width, rectangles[i].height)
-            gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
-            gl.drawArrays(primitiveType, offset, count);
+    for (var i = 0; i < shapes.length; i++) {
+        if (shapes[i].type == "line") {
+            render(gl.LINES, shapes[i].vertices, [Math.random(), Math.random(), Math.random(), 1])
+            renderCornerPoint(shapes[i].vertices)
         }
     }
 
@@ -143,22 +130,25 @@ const canvasX = (x) => {
     let newX = x - rect.left
     newX = newX / (rect.right - rect.left) * canvas.width
     return newX
-    // x = x - canvas.getBoundingClientRect().left;
-    // let canvasCoorX = (x - middleX) / middleX;
-    // return canvasCoorX;
 }
 
 const canvasY = (y) => {
     const rect = canvas.getBoundingClientRect()
     let newY = y - rect.top
     newY = newY / (rect.bottom - rect.top) * canvas.height
-    // newY = newY * (canvas.height / canvas.getBoundingClientRect().height)
     return newY
 }
 
 canvas.addEventListener("click", function (event) {
     var x = canvasX(event.clientX);
     var y = canvasY(event.clientY);
+
+    // Rightclick
+    if (event.button == 1) {
+        if (isDrawing && currentShape == "polygon") {
+            isDrawing == false
+        }
+    }
     if (!isDrawing) {
         if (currentShape == "line") {
             temporaryLine = {
@@ -176,7 +166,10 @@ canvas.addEventListener("click", function (event) {
                 x2: x,
                 y2: y,
             }
-            lines.push(temporaryLine)
+            shapes.push({
+                type: "line",
+                vertices: [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2]
+            })
             render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])
 
             renderCornerPoint([temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2])   
@@ -184,9 +177,6 @@ canvas.addEventListener("click", function (event) {
         isDrawing = false
     }
 
-    // setRectangle(gl, x, y, 50, 50);
-    // gl.uniform4f(colorUniformLocation, Math.random(), Math.random(), Math.random(), 1);
-    // gl.drawArrays(gl.TRIANGLES, 0, 6);
     drawcanvas()
 }, false)
 
