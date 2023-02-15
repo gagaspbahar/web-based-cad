@@ -138,9 +138,27 @@ const findNearestPoint = (x, y) => {
     return index
 }
 
+const canvasX = (x) => {
+    const rect = canvas.getBoundingClientRect()
+    let newX = x - rect.left
+    newX = newX / (rect.right - rect.left) * canvas.width
+    return newX
+    // x = x - canvas.getBoundingClientRect().left;
+    // let canvasCoorX = (x - middleX) / middleX;
+    // return canvasCoorX;
+}
+
+const canvasY = (y) => {
+    const rect = canvas.getBoundingClientRect()
+    let newY = y - rect.top
+    newY = newY / (rect.bottom - rect.top) * canvas.height
+    // newY = newY * (canvas.height / canvas.getBoundingClientRect().height)
+    return newY
+}
+
 canvas.addEventListener("click", function (event) {
-    var x = event.clientX;
-    var y = event.clientY;
+    var x = canvasX(event.clientX);
+    var y = canvasY(event.clientY);
     if (!isDrawing) {
         if (currentShape == "line") {
             temporaryLine = {
@@ -175,8 +193,8 @@ canvas.addEventListener("click", function (event) {
 canvas.addEventListener("mousemove", function (event) {
     drawcanvas()
     if (isDrawing) {
-        let x2 = event.clientX;
-        let y2 = event.clientY;
+        let x2 = canvasX(event.clientX);
+        let y2 = canvasY(event.clientY);
         if (currentShape == "line") {
             temporaryLine = {
                 x1: temporaryLine.x1,
