@@ -2,31 +2,36 @@
 // Type for shape
 // const shape = {
 //     type: "line",
+//     id: 0,
 //     vertices: [],
 // }
 
-var shapes = []
+var shapes = [];
 
-var currentShape = "line"
-var isDrawing = false
-var temporaryLine = []
+var currentAction = "create";
+var currentShape = "line";
+var selectedShapeId = 0;
+var selectedVertex = [];
+var translationMode = "x";
+
+var isDrawing = false;
+var temporaryLine = [];
+var sliderValue = 0;
 
 // Initialize the WebGL context
-var canvas = document.querySelector('#gl-canvas');
-var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+var canvas = document.querySelector("#gl-canvas");
+var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 if (!gl) {
-    alert('WebGL not available');
+  alert("WebGL not available");
 }
-
 
 // Create, upload, and compile the shaders
 var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
 var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
 function randomInt(range) {
-    return Math.floor(Math.random() * range);
+  return Math.floor(Math.random() * range);
 }
-
 
 // Link the two shaders above into a program
 var program = createProgram(gl, vertexShader, fragmentShader);
@@ -41,160 +46,305 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
-
-
-var size = 2;          // 2 components per iteration
-var type = gl.FLOAT;   // the data is 32bit floats
+var size = 2; // 2 components per iteration
+var type = gl.FLOAT; // the data is 32bit floats
 var normalize = false; // don't normalize the data
-var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-var offset = 0;        // start at the beginning of the buffer
+var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get the next position
+var offset = 0; // start at the beginning of the buffer
 gl.vertexAttribPointer(
-    positionAttributeLocation, size, type, normalize, stride, offset)  
-    
+  positionAttributeLocation,
+  size,
+  type,
+  normalize,
+  stride,
+  offset
+);
+
 gl.useProgram(program);
-    
+
 gl.enableVertexAttribArray(positionAttributeLocation);
-    
+
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-
 
 // Tell WebGL how to convert from clip space to pixels
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
 function drawcanvas() {
-    var primitiveType;
-    var offset;
-    var count;
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    
-    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height); 
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
 
-    for (var i = 0; i < shapes.length; i++) {
-        if (shapes[i].type == "line") {
-            render(gl.LINES, shapes[i].vertices, [Math.random(), Math.random(), Math.random(), 1])
-            renderCornerPoint(shapes[i].vertices)
-        }
+  gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+  for (var i = 0; i < shapes.length; i++) {
+    if (shapes[i].type == "line") {
+      render(gl.LINES, shapes[i].vertices, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+        1,
+      ]);
+      renderCornerPoint(shapes[i].vertices);
     }
-
+  }
 }
+
+const rangeSlider = document.querySelector('input[name="input-slider"]');
+rangeSlider.addEventListener("change", (event) => {
+  sliderValue = event.target.value;
+  execTranslation();
+  drawcanvas();
+});
+
+const transformationRadioButton = document.querySelectorAll(
+  'input[name="transformation"]'
+);
+
+transformationRadioButton.forEach((radio) => {
+  radio.addEventListener("change", (event) => {
+    currentAction = event.target.value;
+    rangeSlider.value = 50;
+    sliderValue = 50;
+  });
+});
+
+const getIndexById = (id) => {
+  for (var i = 0; i < shapes.length; i++) {
+    if (shapes[i].id == id) {
+      return i;
+    }
+  }
+};
+
+const changeTranslationMode = () => {
+  const elmt = document.getElementById("input-slider-label");
+  if (translationMode === "x") {
+    translationMode = "y";
+    elmt.innerHTML = "Y";
+  } else {
+    translationMode = "x";
+    elmt.innerHTML = "X";
+  }
+};
+
+const execTranslation = () => {
+  if (currentAction == "translation") {
+    var idx = getIndexById(selectedShapeId);
+    var x = 0;
+    if (translationMode == "x") {
+      x = scaleCanvasFrom100X(sliderValue) - shapes[idx].vertices[0];
+    } else {
+      x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
+    }
+    for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
+      console.log(shapes[idx].vertices[i]);
+      if (translationMode == "x") {
+        shapes[idx].vertices[i] += x;
+      } else {
+        shapes[idx].vertices[i + 1] += x;
+      }
+    }
+  }
+};
+
+const scale100FromCanvasX = (x) => {
+  return (x * 100) / canvas.width;
+};
+
+const scaleCanvasFrom100X = (x) => {
+  return (x * canvas.width) / 100;
+};
+
+const scale100FromCanvasY = (y) => {
+  return (y * 100) / canvas.height;
+};
+
+const scaleCanvasFrom100Y = (y) => {
+  return (y * canvas.height) / 100;
+};
 
 const radioButton = document.querySelectorAll('input[name="shape"]');
 radioButton.forEach((radio) => {
-    radio.addEventListener('change', (event) => {
-        currentShape = event.target.value;
-    });
-})
+  radio.addEventListener("change", (event) => {
+    currentShape = event.target.value;
+  });
+});
 
 const render = (type, vertices, color) => {
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
-    gl.drawArrays(type, 0, vertices.length / 2);
-}
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(positionAttributeLocation);
+  gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
+  gl.drawArrays(type, 0, vertices.length / 2);
+};
 
 const renderCornerPoint = (shape) => {
-    const points = shape.length / 2
-    console.log(shape)
-    for (var i = 0; i < points; i++) {
-        console.log(shape[i * 2], shape[i * 2 + 1])
-        let x1 = shape[i * 2]
-        let y1 = shape[i * 2 + 1]
-        let x2 = shape[i * 2] + 5
-        let y2 = shape[i * 2 + 1] + 5
-        let vertices = [x1, y1, x2, y1, x1, y2, x2, y2]
-        
-        render(gl.TRIANGLE_STRIP, vertices, [0, 0, 0, 1])
-    }
-}
+  const points = shape.length / 2;
+  for (var i = 0; i < points; i++) {
+    let x1 = shape[i * 2];
+    let y1 = shape[i * 2 + 1];
+    let x2 = shape[i * 2] + 5;
+    let y2 = shape[i * 2 + 1] + 5;
+    let vertices = [x1, y1, x2, y1, x1, y2, x2, y2];
+    render(gl.TRIANGLE_STRIP, vertices, [0, 0, 0, 1]);
+  }
+};
+
+const distance = (x1, y1, x2, y2) => {
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+};
 
 const findNearestPoint = (x, y) => {
-    var min = 1000000
-    var index = 0
-    for (var i = 0; i < lines.length; i++) {
-        var distance = Math.sqrt(Math.pow(x - lines[i].x1, 2) + Math.pow(y - lines[i].y1, 2))
-        if (distance < min) {
-            min = distance
-            index = i
-        }
+  var min = 1000000;
+  var index = 0;
+  var vertex = [];
+  for (var i = 0; i < shapes.length; i++) {
+    for (var j = 0; j < shapes[i].vertices.length; j += 2) {
+      var dist = distance(
+        x,
+        y,
+        shapes[i].vertices[j],
+        shapes[i].vertices[j + 1]
+      );
+      if (dist < min) {
+        min = dist;
+        vertex = [shapes[i].vertices[j], shapes[i].vertices[j + 1]];
+        index = shapes[i].id;
+      }
     }
-    return index
-}
+  }
+  return {
+    vertex: vertex,
+    index: index,
+  };
+};
 
 const canvasX = (x) => {
-    const rect = canvas.getBoundingClientRect()
-    let newX = x - rect.left
-    newX = newX / (rect.right - rect.left) * canvas.width
-    return newX
-}
+  const rect = canvas.getBoundingClientRect();
+  let newX = x - rect.left;
+  newX = (newX / (rect.right - rect.left)) * canvas.width;
+  return newX;
+};
 
 const canvasY = (y) => {
-    const rect = canvas.getBoundingClientRect()
-    let newY = y - rect.top
-    newY = newY / (rect.bottom - rect.top) * canvas.height
-    return newY
-}
+  const rect = canvas.getBoundingClientRect();
+  let newY = y - rect.top;
+  newY = (newY / (rect.bottom - rect.top)) * canvas.height;
+  return newY;
+};
 
-canvas.addEventListener("click", function (event) {
+canvas.addEventListener(
+  "click",
+  function (event) {
     var x = canvasX(event.clientX);
     var y = canvasY(event.clientY);
 
+    console.log(currentAction);
     // Rightclick
     if (event.button == 1) {
-        if (isDrawing && currentShape == "polygon") {
-            isDrawing == false
-        }
-    }
-    if (!isDrawing) {
-        if (currentShape == "line") {
-            temporaryLine = {
-                x1: x,
-                y1: y,
-            }
-        }
-    
-        isDrawing = true
-    } else {
-        if (currentShape == "line") {
-            temporaryLine = {
-                x1: temporaryLine.x1,
-                y1: temporaryLine.y1,
-                x2: x,
-                y2: y,
-            }
-            shapes.push({
-                type: "line",
-                vertices: [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2]
-            })
-            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])
-
-            renderCornerPoint([temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2])   
-        }
-        isDrawing = false
+      if (isDrawing && currentShape == "polygon") {
+        isDrawing == false;
+      }
     }
 
-    drawcanvas()
-}, false)
+    if (currentAction === "translation") {
+      const nearestPoint = findNearestPoint(x, y);
+      if (nearestPoint.index != 0) {
+        selectedShapeId = nearestPoint.index;
+        selectedVertex = nearestPoint.vertex;
+        if (translationMode === "x") {
+          rangeSlider.value = scale100FromCanvasX(selectedVertex[0]);
+        } else {
+          rangeSlider.value = scale100FromCanvasY(selectedVertex[1]);
+        }
+      }
+    }
+
+    if (currentAction === "create") {
+      if (!isDrawing) {
+        if (currentShape == "line") {
+          temporaryLine = {
+            x1: x,
+            y1: y,
+          };
+        }
+
+        isDrawing = true;
+      } else {
+        if (currentShape == "line") {
+          temporaryLine = {
+            x1: temporaryLine.x1,
+            y1: temporaryLine.y1,
+            x2: x,
+            y2: y,
+          };
+          shapes.push({
+            type: "line",
+            id: shapes.length + 1,
+            vertices: [
+              temporaryLine.x1,
+              temporaryLine.y1,
+              temporaryLine.x2,
+              temporaryLine.y2,
+            ],
+          });
+          render(
+            gl.LINES,
+            [
+              temporaryLine.x1,
+              temporaryLine.y1,
+              temporaryLine.x2,
+              temporaryLine.y2,
+            ],
+            [Math.random(), Math.random(), Math.random()]
+          );
+
+          renderCornerPoint([
+            temporaryLine.x1,
+            temporaryLine.y1,
+            temporaryLine.x2,
+            temporaryLine.y2,
+          ]);
+        }
+        isDrawing = false;
+      }
+    }
+
+    drawcanvas();
+  },
+  false
+);
 
 canvas.addEventListener("mousemove", function (event) {
-    drawcanvas()
-    if (isDrawing) {
-        let x2 = canvasX(event.clientX);
-        let y2 = canvasY(event.clientY);
-        if (currentShape == "line") {
-            temporaryLine = {
-                x1: temporaryLine.x1,
-                y1: temporaryLine.y1,
-                x2: x2,
-                y2: y2,
-            }
-            render(gl.LINES, [temporaryLine.x1, temporaryLine.y1, temporaryLine.x2, temporaryLine.y2], [Math.random(), Math.random(), Math.random()])   
-        }
+  drawcanvas();
+  if (isDrawing) {
+    let x2 = canvasX(event.clientX);
+    let y2 = canvasY(event.clientY);
+    if (currentShape == "line") {
+      temporaryLine = {
+        x1: temporaryLine.x1,
+        y1: temporaryLine.y1,
+        x2: x2,
+        y2: y2,
+      };
+      render(
+        gl.LINES,
+        [
+          temporaryLine.x1,
+          temporaryLine.y1,
+          temporaryLine.x2,
+          temporaryLine.y2,
+        ],
+        [Math.random(), Math.random(), Math.random()]
+      );
     }
-})
+  }
+});
+
+const clearCanvas = () => {
+  shapes = [];
+  drawcanvas();
+};
 
 // drawcanvas()

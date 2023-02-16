@@ -1,55 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Web-based CAD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-    <head>
-        <meta charset="utf-8">
-        <title>Web-based CAD</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css">
-    </head>
-    
-    <body>
-        <div class="gl-canvas-container">
-            <canvas id="gl-canvas" width="800" height="700">
-                Your browser does not support WebGL.
-            </canvas>
+  <body>
+    <div class="gl-canvas-container">
+      <canvas id="gl-canvas" width="800" height="700">
+        Your browser does not support WebGL.
+      </canvas>
+    </div>
+    <div class="menu-container">
+      <h1>Web-based CAD</h1>
+      <div class="save-or-load">
+        <h2>Save or Load</h2>
+        <div class="save-or-load-input">
+          <button id="save-btn" onclick="save()" type="submit">Save</button>
+          <input type="file" name="load" id="load" />
+          <label for="load"> load a configuration file</label>
         </div>
-        <div class="menu-container">
-            <h1>Web-based CAD</h1>
-            <div class="save-or-load">
-                <h2>Save or Load</h2>
-                <div class="save-or-load-input">
-                    <button id="save-btn" onclick="save()" type="submit">Save</button>
-                    <input type="file" name="load" id="load">
-                    <label for="load"> load a configuration file</label>
-                </div>
-            </div>
-            <div class="shape-option">
-                <h2>Shape</h2>
-                <div class="shape-option-input">
-                    <input type="radio" name="shape" value="line" id="line">
-                    <label for="line">Line</label>
-                    <input type="radio" name="shape" value="square" id="square">
-                    <label for="square">Square</label>
-                    <input type="radio" name="shape" value="rectangle" id="rectangle">
-                    <label for="rectangle">Rectangle</label>
-                    <input type="radio" name="shape" value="polygon" id="polygon">
-                    <label for="polygon">Polygon</label>
-                </div>
-            </div>
-            <div class="color">
-                <h2>Color</h2>
-                <div class="color-input">
-                    <input type="color" name="color" id="color">
-                    <label for="color"> pick a color</label>
-                </div>
-            </div>
+      </div>
+      <div class="input-slider">
+        <h2>Action</h2>
+        <div class="transformation-input">
+          <input
+            type="radio"
+            name="transformation"
+            value="create"
+            id="create"
+            checked
+          />
+          <label for="create">Create</label>
+          <input
+            type="radio"
+            name="transformation"
+            value="translation"
+            id="translation"
+          />
+          <label for="translation">Translation</label>
+          <input
+            type="radio"
+            name="transformation"
+            value="rotation"
+            id="rotation"
+          />
+          <label for="rotation">Rotation</label>
+          <input
+            type="radio"
+            name="transformation"
+            value="dilation"
+            id="dilation"
+          />
+          <label for="dilation">Dilation</label>
+          <input type="radio" name="transformation" value="shear" id="shear" />
+          <label for="shear">Shear</label>
         </div>
-    </body>
+        <div class="input-slider-input">
+          <input
+            type="range"
+            name="input-slider"
+            id="input-slider"
+            min="0"
+            max="100"
+            value="50"
+          />
+          <label for="input-slider" id="input-slider-label">X</label>
+        </div>
+        <div class="toggle-button">
+            <Button onclick=changeTranslationMode()>
+                Toggle Translation Mode
+            </Button>
+        </div>
+      </div>
+      <div class="shape-option">
+        <h2>Shape</h2>
+        <div class="shape-option-input">
+          <input type="radio" name="shape" value="line" id="line" checked />
+          <label for="line">Line</label>
+          <input type="radio" name="shape" value="square" id="square" />
+          <label for="square">Square</label>
+          <input type="radio" name="shape" value="rectangle" id="rectangle" />
+          <label for="rectangle">Rectangle</label>
+          <input type="radio" name="shape" value="polygon" id="polygon" />
+          <label for="polygon">Polygon</label>
+        </div>
+      </div>
+      <div class="color">
+        <h2>Color</h2>
+        <div class="color-input">
+          <input type="color" name="color" id="color" />
+          <label for="color"> pick a color</label>
+        </div>
+      </div>
+      <div class="clear-input">
+        <button id="clear-btn" onclick="clearCanvas()" type="submit">
+          Clear
+        </button>
+      </div>
+    </div>
+  </body>
 
-    <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"></script>
-    <script src="shader.js"></script>
-    <script src="utils.js"></script>
-    <script src="main.js"></scripT>
-
+  <script
+    type="text/javascript"
+    src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"
+  ></script>
+  <script src="shader.js"></script>
+  <script src="utils.js"></script>
+  <script src="main.js"></script>
 </html>
