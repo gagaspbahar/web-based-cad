@@ -39,6 +39,7 @@ var program = createProgram(gl, vertexShader, fragmentShader);
 var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 var colorUniformLocation = gl.getUniformLocation(program, "u_color");
+var rotationUniformLocation = gl.getUniformLocation(program, "u_rotation");
 
 var positionBuffer = gl.createBuffer();
 
@@ -89,9 +90,13 @@ function drawcanvas() {
 }
 
 const rangeSlider = document.querySelector('input[name="input-slider"]');
-rangeSlider.addEventListener("change", (event) => {
+rangeSlider.addEventListener("input", (event) => {
   sliderValue = event.target.value;
-  execTranslation();
+  if (currentAction == "translation") {
+    execTranslation();
+  } else if (currentAction == "rotation") {
+    execRotation();
+  }
   drawcanvas();
 });
 
@@ -102,8 +107,13 @@ const transformationRadioButton = document.querySelectorAll(
 transformationRadioButton.forEach((radio) => {
   radio.addEventListener("change", (event) => {
     currentAction = event.target.value;
-    rangeSlider.value = 50;
-    sliderValue = 50;
+    if (event.target.value == "translation") {
+      rangeSlider.value = 50;
+      sliderValue = 50;
+    } else if (event.target.value == "rotation") {
+      rangeSlider.value = 0;
+      sliderValue = 0;
+    }
   });
 });
 
@@ -146,6 +156,44 @@ const execTranslation = () => {
   }
 };
 
+const execRotation = () => {
+  if (currentAction == "rotation") {
+    var idx = getIndexById(selectedShapeId);
+    var deg = scaleDegreeFrom100(sliderValue);
+    var rad = angleInEighthRadians(deg);
+    console.log(rad)
+    var center = calculateMidPoint(shapes[idx].vertices);
+    for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
+      var x1 = shapes[idx].vertices[i];
+      var y1 = shapes[idx].vertices[i + 1];
+      var x2 = x1 - center[0];
+      var y2 = y1 - center[1];
+      var x3 = x2 * Math.cos(rad) - y2 * Math.sin(rad);
+      var y3 = x2 * Math.sin(rad) + y2 * Math.cos(rad);
+      shapes[idx].vertices[i] = x3 + center[0];
+      shapes[idx].vertices[i + 1] = y3 + center[1];
+    }
+  }
+};
+
+const calculateMidPoint = (vertices) => {
+    var x = 0;
+    var y = 0;
+    for (var i = 0; i < vertices.length; i += 2) {
+        x += vertices[i];
+        y += vertices[i + 1];
+    }
+    return [x / (vertices.length / 2), y / (vertices.length / 2)];
+}
+
+const scaleDegreeFrom100 = (x) => {
+  return (x * 360) / 100;
+};
+
+const angleInEighthRadians = (x) => {
+  return (x * Math.PI) / (180 * 8);
+};
+
 const scale100FromCanvasX = (x) => {
   return (x * 100) / canvas.width;
 };
@@ -176,6 +224,7 @@ const render = (type, vertices, color) => {
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
+//   gl.uniform2f(rotationUniformLocation, rotation[0], rotation[1]);
   gl.drawArrays(type, 0, vertices.length / 2);
 };
 
