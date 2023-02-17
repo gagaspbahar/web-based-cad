@@ -85,6 +85,14 @@ function drawcanvas() {
         1,
       ]);
       renderCornerPoint(shapes[i].vertices);
+    } else if (shapes[i].type == "polygon") {
+      render(gl.TRIANGLE_FAN, shapes[i].vertices, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+        1,
+      ]);
+      renderCornerPoint(shapes[i].vertices);
     }
   }
 }
@@ -146,7 +154,6 @@ const execTranslation = () => {
       x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
     }
     for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
-      console.log(shapes[idx].vertices[i]);
       if (translationMode == "x") {
         shapes[idx].vertices[i] += x;
       } else {
@@ -161,7 +168,6 @@ const execRotation = () => {
     var idx = getIndexById(selectedShapeId);
     var deg = scaleDegreeFrom100(sliderValue);
     var rad = angleInEighthRadians(deg);
-    console.log(rad)
     var center = calculateMidPoint(shapes[idx].vertices);
     for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
       var x1 = shapes[idx].vertices[i];
@@ -177,14 +183,14 @@ const execRotation = () => {
 };
 
 const calculateMidPoint = (vertices) => {
-    var x = 0;
-    var y = 0;
-    for (var i = 0; i < vertices.length; i += 2) {
-        x += vertices[i];
-        y += vertices[i + 1];
-    }
-    return [x / (vertices.length / 2), y / (vertices.length / 2)];
-}
+  var x = 0;
+  var y = 0;
+  for (var i = 0; i < vertices.length; i += 2) {
+    x += vertices[i];
+    y += vertices[i + 1];
+  }
+  return [x / (vertices.length / 2), y / (vertices.length / 2)];
+};
 
 const scaleDegreeFrom100 = (x) => {
   return (x * 360) / 100;
@@ -224,7 +230,7 @@ const render = (type, vertices, color) => {
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
-//   gl.uniform2f(rotationUniformLocation, rotation[0], rotation[1]);
+  //   gl.uniform2f(rotationUniformLocation, rotation[0], rotation[1]);
   gl.drawArrays(type, 0, vertices.length / 2);
 };
 
@@ -284,79 +290,75 @@ const canvasY = (y) => {
 };
 
 canvas.addEventListener(
-  "click",
+  "mousedown",
   function (event) {
     var x = canvasX(event.clientX);
     var y = canvasY(event.clientY);
 
-    console.log(currentAction);
     // Rightclick
-    if (event.button == 1) {
+    if (event.button == 2) {;
       if (isDrawing && currentShape == "polygon") {
+        temporaryLine = [];
         isDrawing == false;
       }
-    }
-
-    if (currentAction === "translation") {
-      const nearestPoint = findNearestPoint(x, y);
-      if (nearestPoint.index != 0) {
-        selectedShapeId = nearestPoint.index;
-        selectedVertex = nearestPoint.vertex;
-        if (translationMode === "x") {
-          rangeSlider.value = scale100FromCanvasX(selectedVertex[0]);
-        } else {
-          rangeSlider.value = scale100FromCanvasY(selectedVertex[1]);
+    } else {
+        // leftclick
+      if (currentAction === "translation") {
+        const nearestPoint = findNearestPoint(x, y);
+        if (nearestPoint.index != 0) {
+          selectedShapeId = nearestPoint.index;
+          selectedVertex = nearestPoint.vertex;
+          if (translationMode === "x") {
+            rangeSlider.value = scale100FromCanvasX(selectedVertex[0]);
+          } else {
+            rangeSlider.value = scale100FromCanvasY(selectedVertex[1]);
+          }
         }
       }
-    }
 
-    if (currentAction === "create") {
-      if (!isDrawing) {
-        if (currentShape == "line") {
-          temporaryLine = {
-            x1: x,
-            y1: y,
-          };
+      if (currentAction === "create") {
+        if (!isDrawing) {
+          if (currentShape == "line" || currentShape == "polygon") {
+            temporaryLine.push(x);
+            temporaryLine.push(y);
+          }
+          isDrawing = true;
+        } else {
+          if (currentShape == "line") {
+            temporaryLine.push(x);
+            temporaryLine.push(y);
+            shapes.push({
+              type: "line",
+              id: shapes.length + 1,
+              vertices: temporaryLine,
+            });
+            render(gl.LINES, temporaryLine, [
+              Math.random(),
+              Math.random(),
+              Math.random(),
+            ]);
+
+            renderCornerPoint(temporaryLine);
+            temporaryLine = [];
+            isDrawing = false;
+          }
+
+          if (currentShape == "polygon") {
+            temporaryLine.push(x);
+            temporaryLine.push(y);
+            shapes.push({
+              type: "polygon",
+              id: shapes.length + 1,
+              vertices: temporaryLine,
+            });
+            render(gl.TRIANGLE_FAN, temporaryLine, [
+              Math.random(),
+              Math.random(),
+              Math.random(),
+            ]);
+            renderCornerPoint(temporaryLine);
+          }
         }
-
-        isDrawing = true;
-      } else {
-        if (currentShape == "line") {
-          temporaryLine = {
-            x1: temporaryLine.x1,
-            y1: temporaryLine.y1,
-            x2: x,
-            y2: y,
-          };
-          shapes.push({
-            type: "line",
-            id: shapes.length + 1,
-            vertices: [
-              temporaryLine.x1,
-              temporaryLine.y1,
-              temporaryLine.x2,
-              temporaryLine.y2,
-            ],
-          });
-          render(
-            gl.LINES,
-            [
-              temporaryLine.x1,
-              temporaryLine.y1,
-              temporaryLine.x2,
-              temporaryLine.y2,
-            ],
-            [Math.random(), Math.random(), Math.random()]
-          );
-
-          renderCornerPoint([
-            temporaryLine.x1,
-            temporaryLine.y1,
-            temporaryLine.x2,
-            temporaryLine.y2,
-          ]);
-        }
-        isDrawing = false;
       }
     }
 
@@ -371,22 +373,12 @@ canvas.addEventListener("mousemove", function (event) {
     let x2 = canvasX(event.clientX);
     let y2 = canvasY(event.clientY);
     if (currentShape == "line") {
-      temporaryLine = {
-        x1: temporaryLine.x1,
-        y1: temporaryLine.y1,
-        x2: x2,
-        y2: y2,
-      };
-      render(
-        gl.LINES,
-        [
-          temporaryLine.x1,
-          temporaryLine.y1,
-          temporaryLine.x2,
-          temporaryLine.y2,
-        ],
-        [Math.random(), Math.random(), Math.random()]
-      );
+      temporaryLine = [temporaryLine[0], temporaryLine[1], x2, y2];
+      render(gl.LINES, temporaryLine, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+      ]);
     }
   }
 });
