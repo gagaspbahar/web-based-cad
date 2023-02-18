@@ -18,9 +18,18 @@
       <div class="save-or-load">
         <h2>Save or Load</h2>
         <div class="save-or-load-input">
-          <button id="save-btn" onclick="save()" type="submit">Save</button>
-          <input type="file" name="load" id="load" />
-          <label for="load"> load a configuration file</label>
+          <button id="save-btn" onclick="saveConfig()" type="submit">Save</button>
+          <button id="load-btn" onclick="document.getElementById('load').click()" type="submit">Load</button>
+          <input type="file" name="load" id="load" accept=".txt" onchange="loadConfig()" />
+          <label for="load" id="fileInputLabel">Choose a file</label>
+          <script>
+            const fileInput = document.getElementById("load");
+            const fileInputLabel = document.getElementById("fileInputLabel");
+            fileInput.addEventListener("change", function() {
+              const fileName = fileInput.value.split("\\").pop();
+              fileInputLabel.innerText = fileName;
+            });
+          </script>
         </div>
       </div>
       <div class="input-slider">
@@ -108,6 +117,6 @@
     src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"
   ></script>
   <script src="shader.js"></script>
-  <script src="utils.js"></script>
+  <script src="utils/saveload.js"></script>
   <script src="main.js"></script>
 </html>

@@ -35,3 +35,11 @@
 .color {
     margin-top: 40px;
 }
+
+#load-btn {
+    display: block;
+}
+
+#load {
+    display: none;
+}
