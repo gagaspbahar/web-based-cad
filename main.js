@@ -93,7 +93,7 @@ function drawcanvas() {
         1,
       ]);
       renderCornerPoint(shapes[i].vertices);
-    } else if (shapes[i].type == "polygon") {
+    } else if (shapes[i].type == "polygon" || shapes[i].type == "rectangle") {
       render(gl.TRIANGLE_FAN, shapes[i].vertices, [
         Math.random(),
         Math.random(),
@@ -302,6 +302,7 @@ canvas.addEventListener(
   function (event) {
     var x = canvasX(event.clientX);
     var y = canvasY(event.clientY);
+    let x1, x2, y1, y2;
 
     // Rightclick
     if (event.button == 2) {
@@ -327,7 +328,7 @@ canvas.addEventListener(
 
       if (currentAction === "create") {
         if (!isDrawing) {
-          if (currentShape == "line" || currentShape == "polygon" || currentShape == "square") {
+          if (currentShape == "line" || currentShape == "polygon" || currentShape == "square" || currentShape == "rectangle") {
             temporaryLine.push(x);
             temporaryLine.push(y);
           }
@@ -355,10 +356,10 @@ canvas.addEventListener(
           if (currentShape == "square") {
             temporaryLine.push(x);
             temporaryLine.push(y);
-            let x1 = temporaryLine[0]
-            let y1 = temporaryLine[1]
-            let x2 = temporaryLine[2]
-            let y2 = temporaryLine[3]
+            x1 = temporaryLine[0]
+            y1 = temporaryLine[1]
+            x2 = temporaryLine[2]
+            y2 = temporaryLine[3]
             const distance = Math.abs(x1 - x2) > Math.abs(y1 - y2) ? x1 - x2 : y1 - y2;
             verticesSquare = [
               x1, y1,
@@ -373,6 +374,35 @@ canvas.addEventListener(
               vertices: verticesSquare,
             });
             render(gl.TRIANGLE_STRIP, verticesSquare, [
+              Math.random(),
+              Math.random(),
+              Math.random(),
+            ]);
+
+            renderCornerPoint(temporaryLine);
+            temporaryLine = [];
+            isDrawing = false;
+          }
+
+          if (currentShape == "rectangle") {
+            temporaryLine.push(x);
+            temporaryLine.push(y);
+            x1 = temporaryLine[0]
+            y1 = temporaryLine[1]
+            x2 = temporaryLine[2]
+            y2 = temporaryLine[3]
+            verticesRectangle = [
+              x1, y1,
+              x1, y2,
+              x2, y2,
+              x2, y1
+            ];
+            shapes.push({
+              type: "rectangle",
+              id: shapes.length + 1,
+              vertices: verticesRectangle,
+            });
+            render(gl.TRIANGLE_FAN, verticesSquare, [
               Math.random(),
               Math.random(),
               Math.random(),
@@ -428,6 +458,18 @@ canvas.addEventListener("mousemove", function (event) {
         temporaryLine[0] - distance, temporaryLine[1] - distance
       ];
       render(gl.TRIANGLE_STRIP, verticesSquare, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+      ]);
+    } else if (currentShape == "rectangle") {
+      verticesRectangle = [
+        temporaryLine[0], temporaryLine[1],
+        temporaryLine[0], y2,
+        x2, y2,
+        x2, temporaryLine[1]
+      ];
+      render(gl.TRIANGLE_FAN, verticesRectangle, [
         Math.random(),
         Math.random(),
         Math.random(),
