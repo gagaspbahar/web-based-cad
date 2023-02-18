@@ -85,6 +85,14 @@ function drawcanvas() {
         1,
       ]);
       renderCornerPoint(shapes[i].vertices);
+    } else if (shapes[i].type == "square") {
+      render(gl.TRIANGLE_STRIP, shapes[i].vertices, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+        1,
+      ]);
+      renderCornerPoint(shapes[i].vertices);
     } else if (shapes[i].type == "polygon") {
       render(gl.TRIANGLE_FAN, shapes[i].vertices, [
         Math.random(),
@@ -296,13 +304,14 @@ canvas.addEventListener(
     var y = canvasY(event.clientY);
 
     // Rightclick
-    if (event.button == 2) {;
+    if (event.button == 2) {
+      ;
       if (isDrawing && currentShape == "polygon") {
         temporaryLine = [];
         isDrawing == false;
       }
     } else {
-        // leftclick
+      // leftclick
       if (currentAction === "translation") {
         const nearestPoint = findNearestPoint(x, y);
         if (nearestPoint.index != 0) {
@@ -318,7 +327,7 @@ canvas.addEventListener(
 
       if (currentAction === "create") {
         if (!isDrawing) {
-          if (currentShape == "line" || currentShape == "polygon") {
+          if (currentShape == "line" || currentShape == "polygon" || currentShape == "square") {
             temporaryLine.push(x);
             temporaryLine.push(y);
           }
@@ -333,6 +342,37 @@ canvas.addEventListener(
               vertices: temporaryLine,
             });
             render(gl.LINES, temporaryLine, [
+              Math.random(),
+              Math.random(),
+              Math.random(),
+            ]);
+
+            renderCornerPoint(temporaryLine);
+            temporaryLine = [];
+            isDrawing = false;
+          }
+
+          if (currentShape == "square") {
+            temporaryLine.push(x);
+            temporaryLine.push(y);
+            let x1 = temporaryLine[0]
+            let y1 = temporaryLine[1]
+            let x2 = temporaryLine[2]
+            let y2 = temporaryLine[3]
+            const distance = Math.abs(x1 - x2) > Math.abs(y1 - y2) ? x1 - x2 : y1 - y2;
+            verticesSquare = [
+              x1, y1,
+              x1, y1 - distance,
+              x1 - distance, y1,
+              x1 - distance, y1 - distance
+            ];
+
+            shapes.push({
+              type: "square",
+              id: shapes.length + 1,
+              vertices: verticesSquare,
+            });
+            render(gl.TRIANGLE_STRIP, verticesSquare, [
               Math.random(),
               Math.random(),
               Math.random(),
@@ -375,6 +415,19 @@ canvas.addEventListener("mousemove", function (event) {
     if (currentShape == "line") {
       temporaryLine = [temporaryLine[0], temporaryLine[1], x2, y2];
       render(gl.LINES, temporaryLine, [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+      ]);
+    } else if (currentShape == "square") {
+      const distance = Math.abs(temporaryLine[0] - x2) > Math.abs(temporaryLine[1] - y2) ? temporaryLine[0] - x2 : temporaryLine[1] - y2;
+      verticesSquare = [
+        temporaryLine[0], temporaryLine[1],
+        temporaryLine[0], temporaryLine[1] - distance,
+        temporaryLine[0] - distance, temporaryLine[1],
+        temporaryLine[0] - distance, temporaryLine[1] - distance
+      ];
+      render(gl.TRIANGLE_STRIP, verticesSquare, [
         Math.random(),
         Math.random(),
         Math.random(),
