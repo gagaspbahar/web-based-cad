@@ -362,12 +362,14 @@ canvas.addEventListener(
             y1 = temporaryLine[1]
             x2 = temporaryLine[2]
             y2 = temporaryLine[3]
-            const distance = Math.abs(x1 - x2) > Math.abs(y1 - y2) ? x1 - x2 : y1 - y2;
+            const distance = Math.abs(x1 - x2) > Math.abs(y1 - y2) ? Math.abs(x1 - x2) : Math.abs(y1 - y2);
+            x2 = x1 > x2 ? x1 - distance : x1 + distance;
+            y2 = y1 > y2 ? y1 - distance : y1 + distance;
             verticesSquare = [
               x1, y1,
-              x1, y1 - distance,
-              x1 - distance, y1,
-              x1 - distance, y1 - distance
+              x1, y2,
+              x2, y1,
+              x2, y2
             ];
 
             shapes.push({
@@ -441,12 +443,16 @@ canvas.addEventListener("mousemove", function (event) {
       temporaryLine = [temporaryLine[0], temporaryLine[1], x2, y2];
       render(gl.LINES, temporaryLine, colorRgb);
     } else if (currentShape == "square") {
-      const distance = Math.abs(temporaryLine[0] - x2) > Math.abs(temporaryLine[1] - y2) ? temporaryLine[0] - x2 : temporaryLine[1] - y2;
+      x1 = temporaryLine[0];
+      y1 = temporaryLine[1];
+      const distance = Math.abs(x1 - x2) > Math.abs(y1 - y2) ? Math.abs(x1 - x2) : Math.abs(y1 - y2);
+      x2 = x1 > x2 ? x1 - distance : x1 + distance;
+      y2 = y1 > y2 ? y1 - distance : y1 + distance;
       verticesSquare = [
-        temporaryLine[0], temporaryLine[1],
-        temporaryLine[0], temporaryLine[1] - distance,
-        temporaryLine[0] - distance, temporaryLine[1],
-        temporaryLine[0] - distance, temporaryLine[1] - distance
+        x1, y1,
+        x1, y2,
+        x2, y1,
+        x2, y2
       ];
       render(gl.TRIANGLE_STRIP, verticesSquare, colorRgb);
     } else if (currentShape == "rectangle") {
