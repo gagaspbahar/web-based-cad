@@ -10,7 +10,7 @@
 
 <body>
   <div class="gl-canvas-container">
-    <canvas id="gl-canvas" width="800" height="700">
+    <canvas id="gl-canvas" width="800" height="750">
       Your browser does not support WebGL.
     </canvas>
   </div>
@@ -48,6 +48,10 @@
         <label for="shear">Shear</label>
         <input type="radio" name="transformation" value="change-color" id="change-color" />
         <label for="change-color">Change Color</label>
+        <input type="radio" name="transformation" value="union" id="union" />
+        <label for="union">Union</label>
+        <input type="radio" name="transformation" value="intersection" id="intersection" />
+        <label for="intersection">Intersection</label>
       </div>
       <div class="input-slider-input">
         <input type="range" name="input-slider" id="input-slider" min="0" max="100" value="50" />

@@ -43,3 +43,7 @@
 #load {
     display: none;
 }
+
+.transformation-input {
+    width: 450px;
+}

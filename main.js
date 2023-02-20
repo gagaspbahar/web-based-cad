@@ -13,11 +13,15 @@ var currentAction = "create";
 var currentShape = "line";
 var selectedShapeId = 0;
 var selectedVertex = [];
+var selectedShapeId2 = 0;
+var selectedVertex2 = [];
 var translationMode = "x";
 
 var isDrawing = false;
 var temporaryLine = [];
 var sliderValue = 0;
+var unionSelected = false;
+var intersectionSelected = false;
 
 // Initialize the WebGL context
 var canvas = document.querySelector("#gl-canvas");
@@ -201,6 +205,175 @@ const execChangeColor = () => {
   }
 }
 
+function sortVerticesCounterClockwise(vertices) {
+  // Get the centroid of the polygon
+  let cx = 0, cy = 0;
+  for (let i = 0; i < vertices.length; i += 2) {
+    cx += vertices[i];
+    cy += vertices[i + 1];
+  }
+  cx /= vertices.length / 2;
+  cy /= vertices.length / 2;
+
+  // Sort the vertices in counter-clockwise order
+  const sortedVertices = [];
+  for (let i = 0; i < vertices.length / 2; i++) {
+    sortedVertices.push([vertices[i * 2], vertices[i * 2 + 1]]);
+  }
+  sortedVertices.sort((a, b) => {
+    return Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx);
+  });
+
+  // Convert the sorted vertices back to the flat array format
+  const output = [];
+  for (let i = 0; i < sortedVertices.length; i++) {
+    output.push(sortedVertices[i][0]);
+    output.push(sortedVertices[i][1]);
+  }
+  return output;
+}
+
+
+const execUnionShape = () => {
+  if (currentAction == "union") {
+    var idx1 = getIndexById(selectedShapeId1);
+    console.log("selectedShapeId: " + selectedShapeId1)
+    console.log("idx1: " + idx1)
+    var idx2 = getIndexById(selectedShapeId2);
+    console.log("selectedShapeId2: " + selectedShapeId2)
+    console.log("idx2: " + idx2)
+    var vertices = shapes[idx1].vertices.concat(shapes[idx2].vertices);
+    console.log(shapes[idx1])
+    console.log(shapes[idx1].vertices)
+    console.log(shapes[idx2])
+    console.log(shapes[idx2].vertices)
+    //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
+    vertices = sortVerticesCounterClockwise(vertices);
+    
+    console.log(vertices)
+    var color = shapes[idx1].color;
+    // shapes.splice(idx1, 1);
+    // shapes.splice(idx2, 1);
+    shapes.push({
+      id: shapes.length,
+      type: "polygon",
+      vertices: vertices,
+      color: color,
+    });
+  }
+};
+
+// draw the intersection shape of two shapes
+const execIntersectionShape = () => {
+  if (currentAction == "intersection") {
+    var idx1 = getIndexById(selectedShapeId1);
+    console.log("selectedShapeId: " + selectedShapeId1)
+    console.log("idx1: " + idx1)
+    var idx2 = getIndexById(selectedShapeId2);
+    console.log("selectedShapeId2: " + selectedShapeId2)
+    console.log("idx2: " + idx2)
+    var vertices1 = shapes[idx1].vertices;
+    console.log(shapes[idx1])
+    console.log(shapes[idx1].vertices)
+    var vertices2 = shapes[idx2].vertices;
+    console.log(shapes[idx2])
+    console.log(shapes[idx2].vertices)
+    var color = shapes[idx1].color;
+    var vertices = [];
+    for (var i = 0; i < vertices1.length; i += 2) {
+      var x = vertices1[i];
+      var y = vertices1[i + 1];
+      if (isInsidePolygon(x, y, vertices2)) {
+        vertices.push(x);
+        vertices.push(y);
+      }
+    }
+    console.log(vertices)
+    for (var i = 0; i < vertices2.length; i += 2) {
+      var x = vertices2[i];
+      var y = vertices2[i + 1];
+      if (isInsidePolygon(x, y, vertices1)) {
+        vertices.push(x);
+        vertices.push(y);
+      }
+    }
+    console.log(vertices)
+    // add vertices of the intersection shape
+    for (var i = 0; i < vertices1.length; i += 2) {
+      var x1 = vertices1[i];
+      var y1 = vertices1[i + 1];
+      var x2 = vertices1[(i + 2) % vertices1.length];
+      var y2 = vertices1[(i + 3) % vertices1.length];
+      for (var j = 0; j < vertices2.length; j += 2) {
+        var x3 = vertices2[j];
+        var y3 = vertices2[j + 1];
+        var x4 = vertices2[(j + 2) % vertices2.length];
+        var y4 = vertices2[(j + 3) % vertices2.length];
+        var intersection = getIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+        if (intersection != null) {
+          vertices.push(intersection[0]);
+          vertices.push(intersection[1]);
+        }
+      }
+    }
+    console.log(vertices)
+    //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
+    vertices = sortVerticesCounterClockwise(vertices);
+    shapes.push({
+      id: shapes.length,
+      type: "polygon",
+      vertices: vertices,
+      color: color,
+    });
+    // delete the two shapes
+    shapes.splice(idx1, 1);
+    shapes.splice(idx2, 1);
+  }
+};
+
+function isInsidePolygon(x, y, vertices) {
+  var inside = false;
+  for (var i = 0, j = vertices.length - 2; i < vertices.length; j = i, i += 2) {
+    var xi = vertices[i],
+      yi = vertices[i + 1];
+    var xj = vertices[j],
+      yj = vertices[j + 1];
+
+    var intersect =
+      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+  var denominator =
+    (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+  if (denominator == 0) {
+    return null;
+  }
+  var a = y1 - y3;
+  var b = x1 - x3;
+  var numerator1 = (x4 - x3) * a - (y4 - y3) * b;
+  var numerator2 = (x2 - x1) * a - (y2 - y1) * b;
+  a = numerator1 / denominator;
+  b = numerator2 / denominator;
+
+  // if we cast these lines infinitely in both directions, they intersect here:
+  var x = x1 + a * (x2 - x1);
+  var y = y1 + a * (y2 - y1);
+
+  // if line1 is a segment and line2 is infinite, they intersect if:
+  if (a > 0 && a < 1 && b > 0 && b < 1) {
+    return [x, y];
+  } else {
+    return null;
+  }
+}
+
+
+
 const calculateMidPoint = (vertices) => {
   var x = 0;
   var y = 0;
@@ -345,6 +518,57 @@ canvas.addEventListener(
           execChangeColor();
         }
       }
+
+      if (currentAction === "union") {
+        if (!unionSelected) { 
+          const nearestPoint = findNearestPoint(x, y);
+          if (nearestPoint.index != 0) {
+            selectedShapeId1 = nearestPoint.index;
+            selectedVertex1 = nearestPoint.vertex;
+            unionSelected = true;
+            console.log("selected shape 1");
+            console.log(selectedShapeId1);
+            console.log(selectedVertex1);
+          } 
+        } else {
+          const nearestPoint2 = findNearestPoint(x, y);
+          if (nearestPoint2.index != 0) {
+            selectedShapeId2 = nearestPoint2.index;
+            selectedVertex2 = nearestPoint2.vertex;
+            unionSelected = false;
+            console.log("selected shape 2");
+            console.log(selectedShapeId2);
+            console.log(selectedVertex2);
+            execUnionShape();
+          }
+        }
+      }
+
+      if (currentAction === "intersection") {
+        if (!intersectionSelected) {
+          const nearestPoint = findNearestPoint(x, y);
+          if (nearestPoint.index != 0) {
+            selectedShapeId1 = nearestPoint.index;
+            selectedVertex1 = nearestPoint.vertex;
+            intersectionSelected = true;
+            console.log("selected shape 1");
+            console.log(selectedShapeId1);
+            console.log(selectedVertex1);
+          }
+        } else {
+          const nearestPoint2 = findNearestPoint(x, y);
+          if (nearestPoint2.index != 0) {
+            selectedShapeId2 = nearestPoint2.index;
+            selectedVertex2 = nearestPoint2.vertex;
+            intersectionSelected = false;
+            console.log("selected shape 2");
+            console.log(selectedShapeId2);
+            console.log(selectedVertex2);
+            execIntersectionShape();
+          }
+        }
+      }
+
 
       if (currentAction === "create") {
         if (!isDrawing) {
