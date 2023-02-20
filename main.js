@@ -80,7 +80,6 @@ function drawcanvas() {
   for (var i = 0; i < shapes.length; i++) {
     if (shapes[i].type == "line") {
       render(gl.LINES, shapes[i].vertices, shapes[i].color);
-      console.log(shapes[i])
       renderCornerPoint(shapes[i].vertices);
     } else if (shapes[i].type == "square") {
       render(gl.TRIANGLE_STRIP, shapes[i].vertices, shapes[i].color);
@@ -131,7 +130,6 @@ const setHexToRgb = (hex) => {
 
 const setShapeColor = () => {
   const colorInput = document.getElementById("color").value;
-  console.log(colorInput)
   setHexToRgb(colorInput);
 }
 
@@ -192,6 +190,16 @@ const execRotation = () => {
     }
   }
 };
+
+const execChangeColor = () => {
+  if (currentAction == "change-color") {
+    var idx = getIndexById(selectedShapeId);
+    console.log(shapes[idx]);
+    setShapeColor();
+    shapes[idx].color = colorRgb;
+    colorRgb = [];
+  }
+}
 
 const calculateMidPoint = (vertices) => {
   var x = 0;
@@ -318,16 +326,23 @@ canvas.addEventListener(
       }
     } else {
       // leftclick
-      if (currentAction === "translation") {
+      if (currentAction === "translation" || "rotation" || "change-color") {
         const nearestPoint = findNearestPoint(x, y);
         if (nearestPoint.index != 0) {
           selectedShapeId = nearestPoint.index;
           selectedVertex = nearestPoint.vertex;
+        }
+
+        if (currentAction === "translation") {
           if (translationMode === "x") {
             rangeSlider.value = scale100FromCanvasX(selectedVertex[0]);
           } else {
             rangeSlider.value = scale100FromCanvasY(selectedVertex[1]);
           }
+        }
+
+        if (currentAction == "change-color") {
+          execChangeColor();
         }
       }
 
