@@ -22,6 +22,7 @@ var temporaryLine = [];
 var sliderValue = 0;
 var unionSelected = false;
 var intersectionSelected = false;
+var preserveShapeSelected = false;
 
 // Initialize the WebGL context
 var canvas = document.querySelector("#gl-canvas");
@@ -159,6 +160,16 @@ const changeTranslationMode = () => {
   }
 };
 
+const preserveShape = () => {
+  preserveShapeSelected = !preserveShapeSelected;
+  if (preserveShapeSelected) {
+    document.getElementById("preserve-shape").innerHTML = "Preserve Shape";
+  } else {
+    document.getElementById("preserve-shape").innerHTML = "Do Not Preserve Shape";
+  }
+};
+
+
 const execTranslation = () => {
   if (currentAction == "translation") {
     var idx = getIndexById(selectedShapeId);
@@ -219,11 +230,23 @@ const execMovePoint = () => {
       x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
     }
     for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
-      if (shapes[idx].vertices[i] == selectedVertex[0] && shapes[idx].vertices[i + 1] == selectedVertex[1]) {
+      if (!preserveShapeSelected) {
+        if (shapes[idx].vertices[i] == selectedVertex[0] && shapes[idx].vertices[i + 1] == selectedVertex[1]) {
+          if (translationMode == "x") {
+            shapes[idx].vertices[i] += x;
+          } else {
+            shapes[idx].vertices[i + 1] += x;
+          }
+        }
+      } else {
         if (translationMode == "x") {
-          shapes[idx].vertices[i] += x;
+          if (shapes[idx].vertices[i] == selectedVertex[0]) {
+            shapes[idx].vertices[i] += x;
+          }
         } else {
-          shapes[idx].vertices[i + 1] += x;
+          if (shapes[idx].vertices[i + 1] == selectedVertex[1]) {
+            shapes[idx].vertices[i + 1] += x;
+          }
         }
       }
     }

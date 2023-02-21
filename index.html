@@ -58,10 +58,14 @@
       <div class="input-slider-input">
         <input type="range" name="input-slider" id="input-slider" min="0" max="100" value="50" />
         <label for="input-slider" id="input-slider-label">X</label>
+        <div id="preserve-shape"></div>
       </div>
       <div class="toggle-button">
         <Button onclick=changeTranslationMode()>
           Toggle Translation Mode
+        </Button>
+        <Button onclick=preserveShape()>
+          Preserve Shape
         </Button>
       </div>
     </div>
