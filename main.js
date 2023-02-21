@@ -102,6 +102,8 @@ rangeSlider.addEventListener("input", (event) => {
     execTranslation();
   } else if (currentAction == "rotation") {
     execRotation();
+  } else if (currentAction == "move-point") {
+    execMovePoint();
   }
   drawcanvas();
 });
@@ -113,7 +115,7 @@ const transformationRadioButton = document.querySelectorAll(
 transformationRadioButton.forEach((radio) => {
   radio.addEventListener("change", (event) => {
     currentAction = event.target.value;
-    if (event.target.value == "translation") {
+    if (event.target.value == "translation" || event.target.value == "move-point") {
       rangeSlider.value = 50;
       sliderValue = 50;
     } else if (event.target.value == "rotation") {
@@ -204,6 +206,29 @@ const execChangeColor = () => {
     colorRgb = [];
   }
 }
+
+const execMovePoint = () => {
+  if (currentAction == "move-point") {
+    var idx = getIndexById(selectedShapeId);
+    console.log(shapes[idx]);
+    console.log(selectedVertex);
+    var x = 0;
+    if (translationMode == "x") {
+      x = scaleCanvasFrom100X(sliderValue) - shapes[idx].vertices[0];
+    } else {
+      x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
+    }
+    for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
+      if (shapes[idx].vertices[i] == selectedVertex[0] && shapes[idx].vertices[i + 1] == selectedVertex[1]) {
+        if (translationMode == "x") {
+          shapes[idx].vertices[i] += x;
+        } else {
+          shapes[idx].vertices[i + 1] += x;
+        }
+      }
+    }
+  }
+};
 
 function sortVerticesCounterClockwise(vertices) {
   // Get the centroid of the polygon
@@ -499,14 +524,14 @@ canvas.addEventListener(
       }
     } else {
       // leftclick
-      if (currentAction === "translation" || "rotation" || "change-color") {
+      if (currentAction === "translation" || "rotation" || "change-color"|| "move-point") {
         const nearestPoint = findNearestPoint(x, y);
         if (nearestPoint.index != 0) {
           selectedShapeId = nearestPoint.index;
           selectedVertex = nearestPoint.vertex;
         }
 
-        if (currentAction === "translation") {
+        if (currentAction === "translation" || "move-point") {
           if (translationMode === "x") {
             rangeSlider.value = scale100FromCanvasX(selectedVertex[0]);
           } else {
