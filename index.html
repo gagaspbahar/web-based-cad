@@ -36,7 +36,9 @@
     <div class="input-slider">
       <h2>Action</h2>
       <div class="transformation-input">
-        <input type="radio" name="transformation" value="create" id="create" checked />
+        <input type="radio" name="transformation" value="create" id="none" checked />
+        <label for="create">None</label>
+        <input type="radio" name="transformation" value="create" id="create"/>
         <label for="create">Create</label>
         <input type="radio" name="transformation" value="translation" id="translation" />
         <label for="translation">Translation</label>
@@ -68,6 +70,14 @@
           Preserve Shape
         </Button>
       </div>
+      <div class="polygon-input">
+        <Button onclick=toggleAddVertex()>
+          Add vertex
+        </Button>
+        <Button onclick=toggleRemoveVertex()>
+          Remove vertex
+        </Button>
+      </div>
     </div>
     <div class="shape-option">
       <h2>Shape</h2>
@@ -86,7 +96,7 @@
       <h2>Color</h2>
       <div class="color-input">
         <input type="color" name="color" id="color" />
-        <label for="color"> pick a color</label>
+        <label for="color"> Pick a color</label>
       </div>
     </div>
     <div class="clear-input">
