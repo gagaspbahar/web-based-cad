@@ -9,7 +9,7 @@
 var shapes = [];
 var colorRgb = [];
 
-var currentAction = "create";
+var currentAction = "none";
 var currentShape = "line";
 var currentPolygonAction = "none";
 var selectedShapeId = 0;
@@ -20,11 +20,14 @@ var translationMode = "x";
 
 var isDrawing = false;
 var temporaryLine = [];
+var temporaryColor = [];
 var sliderValue = 0;
 var unionSelected = false;
 var intersectionSelected = false;
 var preserveShapeSelected = false;
 var polygonActionFlag = false;
+var currentColorMode = "shape";
+// var colorMode = "vertex";
 
 // Initialize the WebGL context
 var canvas = document.querySelector("#gl-canvas");
@@ -47,7 +50,7 @@ var program = createProgram(gl, vertexShader, fragmentShader);
 var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 var colorUniformLocation = gl.getUniformLocation(program, "u_color");
-var rotationUniformLocation = gl.getUniformLocation(program, "u_rotation");
+var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
 
 var positionBuffer = gl.createBuffer();
 
@@ -185,6 +188,14 @@ const customSplice = (arr, pair) => {
   return arr;
 };
 
+const getVertexIndex = (arr, pair) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] == pair[0] && arr[i + 1] == pair[1]) {
+      return i;
+    }
+  }
+}
+
 const execTranslation = () => {
   if (currentAction == "translation") {
     var idx = getIndexById(selectedShapeId);
@@ -250,8 +261,18 @@ const execChangeColor = () => {
     var idx = getIndexById(selectedShapeId);
     console.log(shapes[idx]);
     setShapeColor();
-    shapes[idx].color = colorRgb;
-    colorRgb = [];
+    if (currentColorMode == "vertex") {
+      for (var i = 0; i < shapes[idx].color.length; i++) {
+        shapes[idx].color[i] = colorRgb[i % 4];
+      }
+      colorRgb = [];
+    } else {
+      vertexIdx = getVertexIndex(shapes[idx].vertices, selectedVertex);
+      colorIdx = vertexIdx * 2;
+      for(var i = 0; i < 4; i++) {
+        shapes[idx].color[colorIdx+i] = colorRgb[i];
+      }
+    }
   }
 };
 
@@ -522,6 +543,18 @@ const toggleRemoveVertex = () => {
   }
 };
 
+const toggleShapeColorMode = () => {
+  if (currentColorMode == "shape") {
+    currentColorMode = "vertex";
+  }
+};
+
+const toggleVertexColorMode = () => {
+  if (currentColorMode == "vertex") {
+    currentColorMode = "shape";
+  }
+};
+
 const radioButton = document.querySelectorAll('input[name="shape"]');
 radioButton.forEach((radio) => {
   radio.addEventListener("change", (event) => {
@@ -535,7 +568,13 @@ const render = (type, vertices, color) => {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(positionAttributeLocation);
-  gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1);
+
+  var colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(color), gl.STATIC_DRAW);
+  gl.vertexAttribPointer(colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(colorAttributeLocation);
+  // gl.attribute4f(colorAttributeLocation, ...color);
   //   gl.uniform2f(rotationUniformLocation, rotation[0], rotation[1]);
   gl.drawArrays(type, 0, vertices.length / 2);
 };
@@ -697,22 +736,27 @@ canvas.addEventListener(
           ) {
             temporaryLine.push(x);
             temporaryLine.push(y);
+            temporaryColor.push(...colorRgb);
+            temporaryColor.push(...colorRgb);
           }
           isDrawing = true;
         } else {
           if (currentShape == "line") {
             temporaryLine.push(x);
             temporaryLine.push(y);
+            temporaryColor.push(...colorRgb);
+            temporaryColor.push(...colorRgb);
             shapes.push({
               type: "line",
               id: shapes.length + 1,
               vertices: temporaryLine,
-              color: colorRgb,
+              color: temporaryColor,
             });
             // render(gl.LINES, temporaryLine, colorRgb);
 
             renderCornerPoint(temporaryLine);
             temporaryLine = [];
+            temporaryColor = [];
             isDrawing = false;
           }
 
@@ -723,6 +767,9 @@ canvas.addEventListener(
             y1 = temporaryLine[1];
             x2 = temporaryLine[2];
             y2 = temporaryLine[3];
+            for (let i = 0; i < 4; i++) {
+              temporaryColor.push(...colorRgb);
+            }
             const distance =
               Math.abs(x1 - x2) > Math.abs(y1 - y2)
                 ? Math.abs(x1 - x2)
@@ -735,12 +782,13 @@ canvas.addEventListener(
               type: "square",
               id: shapes.length + 1,
               vertices: verticesSquare,
-              color: colorRgb,
+              color: temporaryColor,
             });
             // render(gl.TRIANGLE_STRIP, verticesSquare, color: colorRgb);
 
             renderCornerPoint(temporaryLine);
             temporaryLine = [];
+            temporaryColor = [];
             isDrawing = false;
           }
 
@@ -751,28 +799,36 @@ canvas.addEventListener(
             y1 = temporaryLine[1];
             x2 = temporaryLine[2];
             y2 = temporaryLine[3];
+            for (let i = 0; i < 4; i++) {
+              temporaryColor.push(...colorRgb);
+            }
+            console.log(temporaryColor);
             verticesRectangle = [x1, y1, x1, y2, x2, y2, x2, y1];
             shapes.push({
               type: "rectangle",
               id: shapes.length + 1,
               vertices: verticesRectangle,
-              color: colorRgb,
+              color: temporaryColor,
             });
             // render(gl.TRIANGLE_FAN, verticesSquare, colorRgb);
 
             renderCornerPoint(temporaryLine);
             temporaryLine = [];
+            temporaryColor = [];
             isDrawing = false;
           }
 
           if (currentShape == "polygon") {
             temporaryLine.push(x);
             temporaryLine.push(y);
+            for (let i = 0; i < temporaryLine.length / 2; i++) {
+              temporaryColor.push(...colorRgb);
+            }
             shapes.push({
               type: "polygon",
               id: shapes.length + 1,
               vertices: temporaryLine,
-              color: colorRgb,
+              color: temporaryColor,
             });
             // render(gl.TRIANGLE_FAN, temporaryLine, colorRgb);
             renderCornerPoint(temporaryLine);
@@ -821,7 +877,7 @@ canvas.addEventListener("mousemove", function (event) {
     let y2 = canvasY(event.clientY);
     if (currentShape == "line") {
       temporaryLine = [temporaryLine[0], temporaryLine[1], x2, y2];
-      render(gl.LINES, temporaryLine, colorRgb);
+      render(gl.LINES, temporaryLine, [...colorRgb, ...colorRgb]);
     } else if (currentShape == "square") {
       x1 = temporaryLine[0];
       y1 = temporaryLine[1];
@@ -832,7 +888,7 @@ canvas.addEventListener("mousemove", function (event) {
       x2 = x1 > x2 ? x1 - distance : x1 + distance;
       y2 = y1 > y2 ? y1 - distance : y1 + distance;
       verticesSquare = [x1, y1, x1, y2, x2, y1, x2, y2];
-      render(gl.TRIANGLE_STRIP, verticesSquare, colorRgb);
+      render(gl.TRIANGLE_STRIP, verticesSquare, [...colorRgb, ...colorRgb, ...colorRgb, ...colorRgb]);
     } else if (currentShape == "rectangle") {
       verticesRectangle = [
         temporaryLine[0],
@@ -844,7 +900,7 @@ canvas.addEventListener("mousemove", function (event) {
         x2,
         temporaryLine[1],
       ];
-      render(gl.TRIANGLE_FAN, verticesRectangle, colorRgb);
+      render(gl.TRIANGLE_FAN, verticesRectangle, [...colorRgb, ...colorRgb, ...colorRgb, ...colorRgb]);
     }
   }
 });
@@ -852,6 +908,7 @@ canvas.addEventListener("mousemove", function (event) {
 const clearCanvas = () => {
   shapes = [];
   temporaryLine = [];
+  temporaryColor = [];
   selectedShapeId = 0;
   selectedVertex = 0;
 
