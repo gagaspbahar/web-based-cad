@@ -103,7 +103,10 @@ rangeSlider.addEventListener("input", (event) => {
     execTranslation();
   } else if (currentAction == "rotation") {
     execRotation();
-  } else if (currentAction == "move-point") {
+  } else if (currentAction == "dilatation") {
+    execDilatation();
+  }
+  else if (currentAction == "move-point") {
     execMovePoint();
   }
   drawcanvas();
@@ -116,7 +119,7 @@ const transformationRadioButton = document.querySelectorAll(
 transformationRadioButton.forEach((radio) => {
   radio.addEventListener("change", (event) => {
     currentAction = event.target.value;
-    if (event.target.value == "translation" || event.target.value == "move-point") {
+    if (event.target.value == "translation" || event.target.value == "move-point" || event.target.value == "dilatation") {
       rangeSlider.value = 50;
       sliderValue = 50;
     } else if (event.target.value == "rotation") {
@@ -176,6 +179,7 @@ const execTranslation = () => {
     var x = 0;
     if (translationMode == "x") {
       x = scaleCanvasFrom100X(sliderValue) - shapes[idx].vertices[0];
+      console.log(sliderValue);
     } else {
       x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
     }
@@ -207,6 +211,27 @@ const execRotation = () => {
     }
   }
 };
+
+const resize = (shapeVertices) => {
+  const [x, y] = calculateMidPoint(shapeVertices)
+  const scale = sliderValue / 50;
+  const newVertices = shapeVertices.map((val, idx) => {
+    if (idx % 2 == 0) {
+      return scale * (val - x) + x;
+    } else {
+      return scale * (val - y) + y;
+    }
+  });
+  return newVertices;
+};
+
+const execDilatation = () => {
+  if (currentAction == "dilatation") {
+    var idx = getIndexById(selectedShapeId);
+    console.log(sliderValue / 50);
+    shapes[idx].vertices = resize(shapes[idx].vertices)
+  }
+}
 
 const execChangeColor = () => {
   if (currentAction == "change-color") {
@@ -297,7 +322,7 @@ const execUnionShape = () => {
     console.log(shapes[idx2].vertices)
     //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
     vertices = sortVerticesCounterClockwise(vertices);
-    
+
     console.log(vertices)
     var color = shapes[idx1].color;
     // shapes.splice(idx1, 1);
@@ -547,7 +572,7 @@ canvas.addEventListener(
       }
     } else {
       // leftclick
-      if (currentAction === "translation" || "rotation" || "change-color"|| "move-point") {
+      if (currentAction === "translation" || "rotation" || "change-color" || "move-point") {
         const nearestPoint = findNearestPoint(x, y);
         if (nearestPoint.index != 0) {
           selectedShapeId = nearestPoint.index;
@@ -568,7 +593,7 @@ canvas.addEventListener(
       }
 
       if (currentAction === "union") {
-        if (!unionSelected) { 
+        if (!unionSelected) {
           const nearestPoint = findNearestPoint(x, y);
           if (nearestPoint.index != 0) {
             selectedShapeId1 = nearestPoint.index;
@@ -577,7 +602,7 @@ canvas.addEventListener(
             console.log("selected shape 1");
             console.log(selectedShapeId1);
             console.log(selectedVertex1);
-          } 
+          }
         } else {
           const nearestPoint2 = findNearestPoint(x, y);
           if (nearestPoint2.index != 0) {
