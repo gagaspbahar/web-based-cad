@@ -20,8 +20,16 @@
     margin-top: 40px;
 }
 
+.save-or-load-input {
+    display: flex;
+}
+
+.save-or-load-input button {
+    margin-right: 10px;
+}
+
 .shape-option {
-    margin-top: 40px;
+    margin-top: 30px;
 }
 
 .shape-option-input {
@@ -35,11 +43,20 @@
 }
 
 .color {
-    margin-top: 40px;
+    margin-top: 30px;
 }
 
 #load-btn {
     display: block;
+}
+
+.color button {
+    margin-top: 10px;
+    margin-right: 4px;
+}
+
+.clear-input {
+    margin-top: 20px;
 }
 
 #load {
@@ -52,6 +69,10 @@
 
 h1 {
     margin-top: 0px;
+}
+
+h2 {
+    margin-bottom: 7px;
 }
 
 h4 {
