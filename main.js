@@ -21,6 +21,8 @@ var currentPolygonAction = "none";
 var selectedShapeId = 0;
 var selectedVertex = [];
 var selectedVertexIndex = 0;
+var selectedShapeId1 = 0;
+var selectedVertex1 = [];
 var selectedShapeId2 = 0;
 var selectedVertex2 = [];
 var translationMode = "x";
@@ -36,6 +38,7 @@ var intersectionSelected = false;
 var preserveShapeSelected = false;
 var polygonActionFlag = false;
 var currentColorMode = "shape"; // shape or vertex
+var isConvexHull = false;
 
 
 /*
@@ -330,6 +333,7 @@ const execMovePoint = () => {
           } else {
             shapes[idx].vertices[i + 1] += x;
           }
+          shapes[idx].type == shapes[idx].vertices.length == 2 ? "line" : "polygon";
         }
       } else {
         if (translationMode == "x") {
@@ -429,8 +433,6 @@ const execUnionShape = () => {
       }
     }
     console.log(vertices)
-    // remove vertices inside the other shape
-    //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
     vertices = sortVerticesCounterClockwise(vertices);
 
     console.log(vertices);
@@ -443,6 +445,12 @@ const execUnionShape = () => {
       vertices: vertices,
       color: color,
     });
+    shapes.splice(idx1, 1);
+    shapes.splice(idx2, 1);
+    selectedShapeId1 = 0
+    selectedShapeId2 = 0
+    selectedVertex1 = [];
+    selectedVertex2 = [];
   }
 };
 
@@ -500,7 +508,6 @@ const execIntersectionShape = () => {
       }
     }
     console.log(vertices);
-    //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
     vertices = sortVerticesCounterClockwise(vertices);
     shapes.push({
       id: shapes.length,
@@ -508,9 +515,12 @@ const execIntersectionShape = () => {
       vertices: vertices,
       color: color,
     });
-    // delete the two shapes
     shapes.splice(idx1, 1);
     shapes.splice(idx2, 1);
+    selectedShapeId1 = 0
+    selectedShapeId2 = 0
+    selectedVertex1 = 0
+    selectedVertex2 = 0
   }
 };
 

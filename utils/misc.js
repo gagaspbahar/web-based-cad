@@ -76,21 +76,25 @@ const scaleCanvasFrom100Y = (y) => {
 };
 
 function isInsidePolygon(x, y, vertices) {
-  var inside = false;
-  for (var i = 0, j = vertices.length - 2; i < vertices.length; i += 2) {
-    var xi = vertices[i],
-      yi = vertices[i + 1];
-    var xj = vertices[j],
-      yj = vertices[j + 1];
-
-    var intersect =
-      ((yi > y) != (yj > y)) && (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
-    j = i;
+  // Initialize the count of intersections
+  let count = 0;
+  // Iterate over each edge of the polygon
+  for (let i = 0; i < vertices.length; i += 2) {
+    const x1 = vertices[i];
+    const y1 = vertices[i+1];
+    const x2 = vertices[(i+2) % vertices.length];
+    const y2 = vertices[(i+3) % vertices.length];
+    // Check if the edge intersects the ray cast from the point
+    if (((y1 > y) !== (y2 > y)) &&
+        (x < (x2 - x1) * (y - y1) / (y2 - y1) + x1)) {
+      count += 1;
+    }
   }
-  console.log("x: " + x + " y: " + y + " inside: " + inside);
-  return inside;
+  // If the number of intersections is odd, the point is inside the polygon
+  console.log("x: " + x + " y: " + y + " inside: " + (count % 2 === 1));
+  return count % 2 === 1;
 }
+
 
 function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
   var denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
@@ -103,11 +107,9 @@ function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
   var numerator2 = (x2 - x1) * a - (y2 - y1) * b;
   a = numerator1 / denominator;
   b = numerator2 / denominator;
-
   // if we cast these lines infinitely in both directions, they intersect here:
   var x = x1 + a * (x2 - x1);
-  var y = y1 + a * (y2 - y1);
-
+  var y = y1 + b * (y2 - y1);
   // if line1 is a segment and line2 is infinite, they intersect if:
   if (a > 0 && a < 1 && b > 0 && b < 1) {
     return [x, y];
@@ -115,6 +117,7 @@ function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
     return null;
   }
 }
+
 
 const resize = (shapeVertices) => {
   const [x, y] = calculateMidPoint(shapeVertices);
