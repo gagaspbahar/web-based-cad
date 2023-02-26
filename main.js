@@ -1,11 +1,17 @@
 // Main entry point for the application
+
 // Type for shape
 // const shape = {
 //     type: "line",
 //     id: 0,
 //     vertices: [],
+//     color: [],
 // }
 
+
+/* 
+ * VARIABLES 
+ */
 var shapes = [];
 var colorRgb = [];
 
@@ -29,6 +35,10 @@ var polygonActionFlag = false;
 var currentColorMode = "shape";
 // var colorMode = "vertex";
 
+
+/*
+ * INITIALIZATION
+ */
 // Initialize the WebGL context
 var canvas = document.querySelector("#gl-canvas");
 var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -52,10 +62,11 @@ var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 var colorUniformLocation = gl.getUniformLocation(program, "u_color");
 var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
 
+// Create a buffer to put three 2d clip space points in and bind it to ARRAY_BUFFER
 var positionBuffer = gl.createBuffer();
-
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
+// Set viewport
 gl.viewport(0, 0, canvas.width, canvas.height);
 
 var size = 2; // 2 components per iteration
@@ -81,6 +92,10 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 // Tell WebGL how to convert from clip space to pixels
 gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
+
+/*
+ * DRAWING THE CANVAS
+ */
 function drawcanvas() {
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -101,6 +116,12 @@ function drawcanvas() {
   }
 }
 
+
+
+/* 
+ * EVENT LISTENERS
+ */
+// range slider
 const rangeSlider = document.querySelector('input[name="input-slider"]');
 rangeSlider.addEventListener("input", (event) => {
   sliderValue = event.target.value;
@@ -115,11 +136,10 @@ rangeSlider.addEventListener("input", (event) => {
   }
   drawcanvas();
 });
-
+// transformation buttons
 const transformationRadioButton = document.querySelectorAll(
   'input[name="transformation"]'
 );
-
 transformationRadioButton.forEach((radio) => {
   radio.addEventListener("change", (event) => {
     currentAction = event.target.value;
@@ -349,13 +369,55 @@ const execUnionShape = () => {
     console.log("selectedShapeId: " + selectedShapeId1);
     console.log("idx1: " + idx1);
     var idx2 = getIndexById(selectedShapeId2);
-    console.log("selectedShapeId2: " + selectedShapeId2);
-    console.log("idx2: " + idx2);
-    var vertices = shapes[idx1].vertices.concat(shapes[idx2].vertices);
-    console.log(shapes[idx1]);
-    console.log(shapes[idx1].vertices);
-    console.log(shapes[idx2]);
-    console.log(shapes[idx2].vertices);
+    console.log("selectedShapeId2: " + selectedShapeId2)
+    console.log("idx2: " + idx2)
+    var vertices1 = shapes[idx1].vertices;
+    var vertices2 = shapes[idx2].vertices;
+    var vertices = [];
+    // var vertices = shapes[idx1].vertices.concat(shapes[idx2].vertices);
+    console.log(shapes[idx1])
+    console.log(shapes[idx1].vertices)
+    console.log(shapes[idx2])
+    console.log(shapes[idx2].vertices)
+    for (var i = 0; i < vertices1.length; i += 2) {
+      var x = vertices1[i];
+      var y = vertices1[i + 1];
+      if (!isInsidePolygon(x, y, vertices2)) {
+        console.log("x: " + x + " | y: " + y)
+        vertices.push(x);
+        vertices.push(y);
+      }
+    }
+    console.log(vertices)
+    for (var i = 0; i < vertices2.length; i += 2) {
+      var x = vertices2[i];
+      var y = vertices2[i + 1];
+      if (!isInsidePolygon(x, y, vertices1)) {
+        console.log("x: " + x + " | y: " + y)
+        vertices.push(x);
+        vertices.push(y);
+      }
+    }
+    console.log(vertices)
+    for (var i = 0; i < vertices1.length; i += 2) {
+      var x1 = vertices1[i];
+      var y1 = vertices1[i + 1];
+      var x2 = vertices1[(i + 2) % vertices1.length];
+      var y2 = vertices1[(i + 3) % vertices1.length];
+      for (var j = 0; j < vertices2.length; j += 2) {
+        var x3 = vertices2[j];
+        var y3 = vertices2[j + 1];
+        var x4 = vertices2[(j + 2) % vertices2.length];
+        var y4 = vertices2[(j + 3) % vertices2.length];
+        var intersection = getIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+        if (intersection != null) {
+          vertices.push(intersection[0]);
+          vertices.push(intersection[1]);
+        }
+      }
+    }
+    console.log(vertices)
+    // remove vertices inside the other shape
     //vertices is in format [x1, y1, x2, y2, x3, y3, x4, y4]. sort vertices by its position in the canvas coordinate counterclockwise
     vertices = sortVerticesCounterClockwise(vertices);
 
@@ -440,19 +502,21 @@ const execIntersectionShape = () => {
   }
 };
 
+
 function isInsidePolygon(x, y, vertices) {
   var inside = false;
-  for (var i = 0, j = vertices.length - 2; i < vertices.length; j = i, i += 2) {
+  for (var i = 0, j = vertices.length - 2; i < vertices.length; i += 2) {
     var xi = vertices[i],
       yi = vertices[i + 1];
     var xj = vertices[j],
       yj = vertices[j + 1];
 
     var intersect =
-      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+      ((yi > y) != (yj > y)) && (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
     if (intersect) inside = !inside;
+    j = i;
   }
-
+  console.log("x: " + x + " y: " + y + " inside: " + inside);
   return inside;
 }
 
