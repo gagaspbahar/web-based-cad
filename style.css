@@ -11,10 +11,12 @@
 .menu-container {
     float: right;
     min-height: 700px;
+    max-width: 600px;
     background-color: #f0f0f0;
     padding: 20px;
     border-radius: 20px;
 }
+
 
 .save-or-load {
     margin-top: 40px;
@@ -78,4 +80,8 @@ h2 {
 h4 {
     margin-top: 10px;
     margin-bottom: 2px;
+}
+
+.help-message {
+    display: none;
 }

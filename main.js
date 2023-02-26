@@ -864,6 +864,16 @@ canvas.addEventListener("mousemove", function (event) {
   }
 });
 
+const toggleHelp = () => {
+  const help = document.getElementById("help-message");
+  console.log(help.style.display)
+  if (help.style.display == "block") {
+    help.style.display = "none";
+  } else {
+    help.style.display = "block";
+  }
+}
+
 const clearCanvas = () => {
   shapes = [];
   temporaryLine = [];

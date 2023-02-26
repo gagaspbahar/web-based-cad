@@ -1,142 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Web-based CAD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Web-based CAD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
-</head>
+  <body>
+    <div class="gl-canvas-container">
+      <canvas id="gl-canvas" width="800" height="750">
+        Your browser does not support WebGL.
+      </canvas>
+    </div>
+    <div class="all-container">
+      <div class="menu-container">
+        <h1>Web-based CAD</h1>
+        <div class="help">
+          <button id="help-btn" onclick="toggleHelp()">Show Help</button>
+          <div class="help-message" id="help-message">
+            <p>
+              Untuk melakukan aksi, pilih aksi yang diinginkan pada kolom actions.
+            </p>
+            <h3>Actions</h3>
+            <p>
+              Untuk aksi Create, silahkan pilih shape yang diinginkan pada kolom
+              shape, serta warna yang diinginkan pada Color.
+            </p>
+            <p>
+              Untuk aksi Translation, silahkan klik pada shape yang berada pada
+              canvas, lalu geser slider untuk memindahkan. Untuk mengganti sumbu,
+              klik Toggle Translation Mode.
+            </p>
+            <p>
+              Untuk aksi Rotation, silahkan klik pada shape yang berada pada
+              canvas, lalu geser slider untuk memutar.
+            </p>
+            <p>
+              Untuk aksi Dilatasi, silahkan klik pada shape yang berada pada
+              canvas, lalu input skala yang ingin dimasukkan pada kolom yang
+              tersedia dan klik resize.
+            </p>
+            <p>
+              Untuk aksi Change Size dapat dilakukan pada shape Square dan
+              Rectangle. Silahkan klik pada shape yang berada pada canvas, lalu
+              input skala yang ingin dimasukkan pada kolom yang tersedia dan klik
+              resize. Apabila ingin mengubah sisi yang ingin di resize, klik
+              Toggle Size Mode.
+            </p>
+            <p>
+              Untuk aksi Change Color, klik warna yang diinginkan lalu klik pada
+              shape yang diinginkan. Untuk mengubah warna dari salah satu titik
+              sudut, klik Change vertex color terlebih dahulu. Untuk mengubah
+              warna satu shape, klik Change shape color terlebih dahulu.
+            </p>
+            <p>
+              Untuk aksi Move Point, silahkan klik pada salah satu titik sudut
+              yang berada pada canvas, lalu geser slider untuk memindahkan. Untuk
+              mengganti sumbu, klik Toggle Translation Mode.
+            </p>
+            <p>
+              Untuk aksi Union dan Intersection, silahkan klik pada dua shape yang
+              ingin digabung.
+            </p>
+            <h3>Lainnya:</h3>
+            <p>
+              Untuk menambahkan atau mengurangi titik sudut poligon, klik Add
+              vertex lalu tambahkan titik sudut, atau remove vertex lalu klik pada
+              salah satu titik sudut yang sudah ada.
+            </p>
+            <p>Untuk clear canvas, klik tombol Clear.</p>
+            <p>Untuk Save File, klik save.</p>
+            <p>Untuk Load file, klik Load lalu pilih file konfigurasi.</p>
+          </div>
+        </div>
+        <div class="save-or-load">
+          <h2>Save or Load</h2>
+          <div class="save-or-load-input">
+            <button id="save-btn" onclick="saveConfig()" type="submit">
+              Save
+            </button>
+            <button
+              id="load-btn"
+              onclick="document.getElementById('load').click()"
+              type="submit"
+            >
+              Load
+            </button>
+            <input
+              type="file"
+              name="load"
+              id="load"
+              accept=".txt"
+              onchange="loadConfig()"
+            />
+            <label for="load" id="fileInputLabel">Choose a file</label>
+            <script>
+              const fileInput = document.getElementById("load");
+              const fileInputLabel = document.getElementById("fileInputLabel");
+              fileInput.addEventListener("change", function () {
+                const fileName = fileInput.value.split("\\").pop();
+                fileInputLabel.innerText = fileName;
+              });
+            </script>
+          </div>
+        </div>
+        <div class="input-slider">
+          <h2>Action</h2>
+          <div class="transformation-input">
+            <input
+              type="radio"
+              name="transformation"
+              value="create"
+              id="none"
+              checked
+            />
+            <label for="create">None</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="create"
+              id="create"
+            />
+            <label for="create">Create</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="translation"
+              id="translation"
+            />
+            <label for="translation">Translation</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="rotation"
+              id="rotation"
+            />
+            <label for="rotation">Rotation</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="dilatation"
+              id="dilatation"
+            />
+            <label for="dilatation">Dilatation</label>
+            <br />
+            <input
+              type="radio"
+              name="transformation"
+              value="change-size"
+              id="change-size"
+            />
+            <label for="shear">Change Size</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="change-color"
+              id="change-color"
+            />
+            <label for="change-color">Change Color</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="move-point"
+              id="move-point"
+            />
+            <label for="move-point">Move Point</label>
+            <input type="radio" name="transformation" value="union" id="union" />
+            <label for="union">Union</label>
+            <input
+              type="radio"
+              name="transformation"
+              value="intersection"
+              id="intersection"
+            />
+            <label for="intersection">Intersection</label>
+          </div>
+          <h4>Coordinate Slider</h4>
+          <div class="input-slider-input">
+            <input
+              type="range"
+              name="input-slider"
+              id="input-slider"
+              min="0"
+              max="100"
+              value="50"
+            />
+            <label for="input-slider" id="input-slider-label">X</label>
+            <div id="preserve-shape"></div>
+          </div>
+          <div class="toggle-button">
+            <button onclick="changeTranslationMode()">
+              Toggle Translation Mode
+            </button>
+            <button onclick="preserveShape()">Preserve Shape</button>
+          </div>
+          <h4>Resize/Dilatation Input</h4>
+          <div class="input-text">
+            <label class="input-size">Scale 0-4 times</label>
+            <input
+              class="input-size"
+              id="size-input"
+              type="number"
+              min="0"
+              max="5"
+              step="0.01"
+              value="1.5"
+            />
+            <label for="size-input" id="size-input-label">Length</label>
+          </div>
+          <div class="toggle-button">
+            <button onclick="changeSizeMode()">Toggle Side Mode</button>
+            <button id="resize-button">Resize</button>
+          </div>
+          <h4>Polygon add/remove vertex</h4>
+          <div class="polygon-input">
+            <button onclick="toggleAddVertex()">Add vertex</button>
+            <button onclick="toggleRemoveVertex()">Remove vertex</button>
+          </div>
+        </div>
+        <div class="shape-option">
+          <h2>Shape</h2>
+          <div class="shape-option-input">
+            <input type="radio" name="shape" value="line" id="line" checked />
+            <label for="line">Line</label>
+            <input type="radio" name="shape" value="square" id="square" />
+            <label for="square">Square</label>
+            <input type="radio" name="shape" value="rectangle" id="rectangle" />
+            <label for="rectangle">Rectangle</label>
+            <input type="radio" name="shape" value="polygon" id="polygon" />
+            <label for="polygon">Polygon</label>
+          </div>
+        </div>
+        <div class="color">
+          <h2>Color</h2>
+          <div class="color-input">
+            <input type="color" name="color" id="color" />
+            <label for="color"> Pick a color</label>
+          </div>
+          <div class="polygon-input">
+            <button onclick="toggleVertexColorMode()">Change vertex color</button>
+            <button onclick="toggleShapeColorMode()">Change shape color</button>
+          </div>
+        </div>
+        <div class="clear-input">
+          <button id="clear-btn" onclick="clearCanvas()" type="submit">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
 
-<body>
-  <div class="gl-canvas-container">
-    <canvas id="gl-canvas" width="800" height="750">
-      Your browser does not support WebGL.
-    </canvas>
-  </div>
-  <div class="menu-container">
-    <h1>Web-based CAD</h1>
-    <div class="save-or-load">
-      <h2>Save or Load</h2>
-      <div class="save-or-load-input">
-        <button id="save-btn" onclick="saveConfig()" type="submit">Save</button>
-        <button id="load-btn" onclick="document.getElementById('load').click()" type="submit">Load</button>
-        <input type="file" name="load" id="load" accept=".txt" onchange="loadConfig()" />
-        <label for="load" id="fileInputLabel">Choose a file</label>
-        <script>
-          const fileInput = document.getElementById("load");
-          const fileInputLabel = document.getElementById("fileInputLabel");
-          fileInput.addEventListener("change", function () {
-            const fileName = fileInput.value.split("\\").pop();
-            fileInputLabel.innerText = fileName;
-          });
-        </script>
-      </div>
-    </div>
-    <div class="input-slider">
-      <h2>Action</h2>
-      <div class="transformation-input">
-        <input type="radio" name="transformation" value="create" id="none" checked />
-        <label for="create">None</label>
-        <input type="radio" name="transformation" value="create" id="create" />
-        <label for="create">Create</label>
-        <input type="radio" name="transformation" value="translation" id="translation" />
-        <label for="translation">Translation</label>
-        <input type="radio" name="transformation" value="rotation" id="rotation" />
-        <label for="rotation">Rotation</label>
-        <input type="radio" name="transformation" value="dilatation" id="dilatation" />
-        <label for="dilatation">Dilatation</label>
-        <br>
-        <input type="radio" name="transformation" value="change-size" id="change-size" />
-        <label for="shear">Change Size</label>
-        <input type="radio" name="transformation" value="change-color" id="change-color" />
-        <label for="change-color">Change Color</label>
-        <input type="radio" name="transformation" value="move-point" id="move-point" />
-        <label for="move-point">Move Point</label>
-        <input type="radio" name="transformation" value="union" id="union" />
-        <label for="union">Union</label>
-        <input type="radio" name="transformation" value="intersection" id="intersection" />
-        <label for="intersection">Intersection</label>
-      </div>
-      <h4>Coordinate Slider</h4>
-      <div class="input-slider-input">
-        <input type="range" name="input-slider" id="input-slider" min="0" max="100" value="50" />
-        <label for="input-slider" id="input-slider-label">X</label>
-        <div id="preserve-shape"></div>
-      </div>
-      <div class="toggle-button">
-        <Button onclick=changeTranslationMode()>
-          Toggle Translation Mode
-        </Button>
-        <Button onclick=preserveShape()>
-          Preserve Shape
-        </Button>
-      </div>
-      <h4>Resize/Dilatation Input</h4>
-      <div class="input-text">
-        <label class="input-size">Scale 0-4 times</label>
-        <input class="input-size" id="size-input" type="number" min="0" max="5" step="0.01" value="1.5">
-        <label for="size-input" id="size-input-label">Length</label>
-      </div>
-      <div class="toggle-button">
-        <Button onclick=changeSizeMode()>
-          Toggle Side Mode
-        </Button>
-        <Button id="resize-button">
-          Resize
-        </Button>
-      </div>
-      <h4>Polygon add/remove vertex</h4>
-      <div class="polygon-input">
-        <Button onclick=toggleAddVertex()>
-          Add vertex
-        </Button>
-        <Button onclick=toggleRemoveVertex()>
-          Remove vertex
-        </Button>
-      </div>
-    </div>
-    <div class="shape-option">
-      <h2>Shape</h2>
-      <div class="shape-option-input">
-        <input type="radio" name="shape" value="line" id="line" checked />
-        <label for="line">Line</label>
-        <input type="radio" name="shape" value="square" id="square" />
-        <label for="square">Square</label>
-        <input type="radio" name="shape" value="rectangle" id="rectangle" />
-        <label for="rectangle">Rectangle</label>
-        <input type="radio" name="shape" value="polygon" id="polygon" />
-        <label for="polygon">Polygon</label>
-      </div>
-    </div>
-    <div class="color">
-      <h2>Color</h2>
-      <div class="color-input">
-        <input type="color" name="color" id="color" />
-        <label for="color"> Pick a color</label>
-      </div>
-      <div class="polygon-input">
-        <Button onclick=toggleVertexColorMode()>
-          Change vertex color
-        </Button>
-        <Button onclick=toggleShapeColorMode()>
-          Change shape color
-        </Button>
-      </div>
-    </div>
-    <div class="clear-input">
-      <button id="clear-btn" onclick="clearCanvas()" type="submit">
-        Clear
-      </button>
-    </div>
-  </div>
-</body>
-
-<script type="text/javascript"
-  src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"></script>
-<script src="shader.js"></script>
-<script src="utils/saveload.js"></script>
-<script src="main.js"></script>
-<script src="utils/misc.js"></script>
-
+  <script
+    type="text/javascript"
+    src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"
+  ></script>
+  <script src="shader.js"></script>
+  <script src="utils/saveload.js"></script>
+  <script src="main.js"></script>
+  <script src="utils/misc.js"></script>
 </html>
