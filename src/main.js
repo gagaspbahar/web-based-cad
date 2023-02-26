@@ -436,6 +436,8 @@ const execUnionShape = () => {
     console.log(vertices)
     vertices = sortVerticesCounterClockwise(vertices);
 
+    // console.log(vertices);
+    // vertices = (calculateMidPoint(vertices)).concat(vertices);
     console.log(vertices);
     var color = shapes[idx1].color;
     // shapes.splice(idx1, 1);
