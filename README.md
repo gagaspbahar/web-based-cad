@@ -4,7 +4,7 @@
 
 ## Cara Menjalankan Program
 
-Buka file `index.html` pada browser atau kunjungi https://gagaspbahar.github.io/web-based-cad/ apabila masih running
+Buka file `index.html` pada browser atau kunjungi https://gagaspbahar.github.io/web-based-cad/src apabila masih running
 
 ## Kontributor
 
