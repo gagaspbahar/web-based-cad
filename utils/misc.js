@@ -118,7 +118,7 @@ function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 
 const resize = (shapeVertices) => {
   const [x, y] = calculateMidPoint(shapeVertices);
-  const scale = sliderValue / 50;
+  const scale = inputValue;
   const newVertices = shapeVertices.map((val, idx) => {
     if (idx % 2 == 0) {
       return scale * (val - x) + x;

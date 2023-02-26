@@ -72,15 +72,17 @@
         </Button>
       </div>
       <h4>Resize/Dilatation Slider</h4>
-      <div class="input-slider-input">
-        <label for="input-size-slider" id="input-size-slider-scale">0.0</label>
-        <input type="range" name="input-size-slider" id="input-size-slider" min="0" max="100" value="50" />
-        <label for="input-size-slider" id="input-size-slider-scale">2.0</label>
-        <label for="input-size-slider" id="input-size-slider-label">Length</label>
+      <div class="input-text">
+        <label class="input-size">Scale 0-4 times</label>
+        <input class="input-size" id="size-input" type="number" min="0" max="5" step="0.01" value="1.5">
+        <label for="size-input" id="size-input-label">Length</label>
       </div>
       <div class="toggle-button">
         <Button onclick=changeSizeMode()>
           Toggle Side Mode
+        </Button>
+        <Button id="resize-button">
+          Resize
         </Button>
       </div>
       <h4>Polygon add/remove vertex</h4>

@@ -29,6 +29,7 @@ var isDrawing = false;
 var temporaryLine = [];
 var temporaryColor = [];
 var sliderValue = 0;
+var inputValue = 1.5;
 var unionSelected = false;
 var intersectionSelected = false;
 var preserveShapeSelected = false;
@@ -135,9 +136,13 @@ rangeSlider.addEventListener("input", (event) => {
   drawcanvas();
 });
 
-const sizeSlider = document.querySelector('input[name="input-size-slider"]');
-sizeSlider.addEventListener("input", (event) => {
-  sliderValue = event.target.value;
+const sizeInput = document.getElementById('size-input');
+sizeInput.addEventListener("input", (event) => {
+  inputValue = event.target.value;
+})
+
+const resizeButton = document.getElementById("resize-button");
+resizeButton.addEventListener("click", (event) => {
   if (currentAction == "dilatation") {
     execDilatation();
   } else if (currentAction == "change-size") {
@@ -145,6 +150,7 @@ sizeSlider.addEventListener("input", (event) => {
   }
   drawcanvas();
 })
+
 // transformation buttons
 const transformationRadioButton = document.querySelectorAll(
   'input[name="transformation"]'
@@ -154,9 +160,7 @@ transformationRadioButton.forEach((radio) => {
     currentAction = event.target.value;
     if (
       event.target.value == "translation" ||
-      event.target.value == "move-point" ||
-      event.target.value == "dilatation" ||
-      event.target.value == "change-size"
+      event.target.value == "move-point"
     ) {
       rangeSlider.value = 50;
       sliderValue = 50;
@@ -192,7 +196,7 @@ const changeTranslationMode = () => {
 };
 
 const changeSizeMode = () => {
-  const elmt = document.getElementById("input-size-slider-label");
+  const elmt = document.getElementById("size-input-label");
   if (sizeMode === "Length") {
     sizeMode = "Width";
     elmt.innerHTML = "Width";
@@ -263,7 +267,7 @@ const execChangeSize = () => {
   if (currentAction == "change-size") {
     var idx = getIndexById(selectedShapeId);
     const [x, y] = calculateMidPoint(shapes[idx].vertices);
-    const scale = sliderValue / 50;
+    const scale = inputValue;
     if (shapes[idx].type == "line" || shapes[idx].type == "square") {
       shapes[idx].vertices = resize(shapes[idx].vertices);
     } else if (shapes[idx].type == "rectangle") {
