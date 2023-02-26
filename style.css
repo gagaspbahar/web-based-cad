@@ -28,7 +28,9 @@
     justify-content: center;
 }
 
-#square, #rectangle, #polygon {
+#square,
+#rectangle,
+#polygon {
     margin-left: 20px;
 }
 
@@ -46,4 +48,13 @@
 
 .transformation-input {
     width: 450px;
+}
+
+h1 {
+    margin-top: 0px;
+}
+
+h4 {
+    margin-top: 10px;
+    margin-bottom: 2px;
 }

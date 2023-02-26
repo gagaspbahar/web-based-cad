@@ -17,6 +17,7 @@ var selectedVertex = [];
 var selectedShapeId2 = 0;
 var selectedVertex2 = [];
 var translationMode = "x";
+var sizeMode = "Length";
 
 var isDrawing = false;
 var temporaryLine = [];
@@ -108,13 +109,22 @@ rangeSlider.addEventListener("input", (event) => {
     execTranslation();
   } else if (currentAction == "rotation") {
     execRotation();
-  } else if (currentAction == "dilatation") {
-    execDilatation();
   } else if (currentAction == "move-point") {
     execMovePoint();
   }
   drawcanvas();
 });
+
+const sizeSlider = document.querySelector('input[name="input-size-slider"]');
+sizeSlider.addEventListener("input", (event) => {
+  sliderValue = event.target.value;
+  if (currentAction == "dilatation") {
+    execDilatation();
+  } else if (currentAction == "change-size") {
+    execChangeSize();
+  }
+  drawcanvas();
+})
 
 const transformationRadioButton = document.querySelectorAll(
   'input[name="transformation"]'
@@ -126,7 +136,8 @@ transformationRadioButton.forEach((radio) => {
     if (
       event.target.value == "translation" ||
       event.target.value == "move-point" ||
-      event.target.value == "dilatation"
+      event.target.value == "dilatation" ||
+      event.target.value == "change-size"
     ) {
       rangeSlider.value = 50;
       sliderValue = 50;
@@ -168,6 +179,17 @@ const changeTranslationMode = () => {
     elmt.innerHTML = "X";
   }
 };
+
+const changeSizeMode = () => {
+  const elmt = document.getElementById("input-size-slider-label");
+  if (sizeMode === "Length") {
+    sizeMode = "Width";
+    elmt.innerHTML = "Width";
+  } else {
+    sizeMode = "Length";
+    elmt.innerHTML = "Length";
+  }
+}
 
 const preserveShape = () => {
   preserveShapeSelected = !preserveShapeSelected;
@@ -251,10 +273,34 @@ const resize = (shapeVertices) => {
 const execDilatation = () => {
   if (currentAction == "dilatation") {
     var idx = getIndexById(selectedShapeId);
-    console.log(sliderValue / 50);
     shapes[idx].vertices = resize(shapes[idx].vertices);
   }
 };
+
+const execChangeSize = () => {
+  if (currentAction == "change-size") {
+    var idx = getIndexById(selectedShapeId);
+    const [x, y] = calculateMidPoint(shapes[idx].vertices);
+    const scale = sliderValue / 50;
+    if (shapes[idx].type == "line" || shapes[idx].type == "square") {
+      shapes[idx].vertices = resize(shapes[idx].vertices);
+    } else if (shapes[idx].type == "rectangle") {
+      if (sizeMode == "Length") {
+        for (var i = 0; i < shapes[idx].vertices.length; i++) {
+          if (i == 4 || i == 6) {
+            shapes[idx].vertices[i] = shapes[idx].vertices[i] * scale;
+          }
+        }
+      } else {
+        for (var i = 0; i < shapes[idx].vertices.length; i++) {
+          if (i == 3 || i == 5) {
+            shapes[idx].vertices[i] = shapes[idx].vertices[i] * scale;
+          }
+        }
+      }
+    }
+  }
+}
 
 const execChangeColor = () => {
   if (currentAction == "change-color") {
@@ -269,8 +315,8 @@ const execChangeColor = () => {
     } else {
       vertexIdx = getVertexIndex(shapes[idx].vertices, selectedVertex);
       colorIdx = vertexIdx * 2;
-      for(var i = 0; i < 4; i++) {
-        shapes[idx].color[colorIdx+i] = colorRgb[i];
+      for (var i = 0; i < 4; i++) {
+        shapes[idx].color[colorIdx + i] = colorRgb[i];
       }
     }
   }

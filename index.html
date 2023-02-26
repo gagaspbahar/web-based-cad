@@ -38,7 +38,7 @@
       <div class="transformation-input">
         <input type="radio" name="transformation" value="create" id="none" checked />
         <label for="create">None</label>
-        <input type="radio" name="transformation" value="create" id="create"/>
+        <input type="radio" name="transformation" value="create" id="create" />
         <label for="create">Create</label>
         <input type="radio" name="transformation" value="translation" id="translation" />
         <label for="translation">Translation</label>
@@ -46,8 +46,8 @@
         <label for="rotation">Rotation</label>
         <input type="radio" name="transformation" value="dilatation" id="dilatation" />
         <label for="dilatation">Dilatation</label>
-        <input type="radio" name="transformation" value="shear" id="shear" />
-        <label for="shear">Shear</label>
+        <input type="radio" name="transformation" value="change-size" id="change-size" />
+        <label for="shear">Change Size</label>
         <input type="radio" name="transformation" value="change-color" id="change-color" />
         <label for="change-color">Change Color</label>
         <input type="radio" name="transformation" value="move-point" id="move-point" />
@@ -57,6 +57,7 @@
         <input type="radio" name="transformation" value="intersection" id="intersection" />
         <label for="intersection">Intersection</label>
       </div>
+      <h4>Coordinate Slider</h4>
       <div class="input-slider-input">
         <input type="range" name="input-slider" id="input-slider" min="0" max="100" value="50" />
         <label for="input-slider" id="input-slider-label">X</label>
@@ -70,6 +71,19 @@
           Preserve Shape
         </Button>
       </div>
+      <h4>Resize/Dilatation Slider</h4>
+      <div class="input-slider-input">
+        <label for="input-size-slider" id="input-size-slider-scale">0.0</label>
+        <input type="range" name="input-size-slider" id="input-size-slider" min="0" max="100" value="50" />
+        <label for="input-size-slider" id="input-size-slider-scale">2.0</label>
+        <label for="input-size-slider" id="input-size-slider-label">Length</label>
+      </div>
+      <div class="toggle-button">
+        <Button onclick=changeSizeMode()>
+          Toggle Side Mode
+        </Button>
+      </div>
+      <h4>Polygon add/remove vertex</h4>
       <div class="polygon-input">
         <Button onclick=toggleAddVertex()>
           Add vertex
