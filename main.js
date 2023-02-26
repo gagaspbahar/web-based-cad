@@ -20,6 +20,7 @@ var currentShape = "line";
 var currentPolygonAction = "none";
 var selectedShapeId = 0;
 var selectedVertex = [];
+var selectedVertexIndex = 0;
 var selectedShapeId2 = 0;
 var selectedVertex2 = [];
 var translationMode = "x";
@@ -311,19 +312,18 @@ const execChangeColor = () => {
 const execMovePoint = () => {
   if (currentAction == "move-point") {
     var idx = getIndexById(selectedShapeId);
-    console.log(shapes[idx]);
-    console.log(selectedVertex);
+    
     var x = 0;
     if (translationMode == "x") {
-      x = scaleCanvasFrom100X(sliderValue) - shapes[idx].vertices[0];
+      x = scaleCanvasFrom100X(sliderValue) - shapes[idx].vertices[selectedVertexIndex];
     } else {
-      x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[1];
+      x = scaleCanvasFrom100Y(sliderValue) - shapes[idx].vertices[selectedVertexIndex+1];
     }
     for (var i = 0; i < shapes[idx].vertices.length; i += 2) {
       if (!preserveShapeSelected) {
         if (
-          shapes[idx].vertices[i] == selectedVertex[0] &&
-          shapes[idx].vertices[i + 1] == selectedVertex[1]
+          shapes[idx].vertices[i] == shapes[idx].vertices[selectedVertexIndex] &&
+          shapes[idx].vertices[i + 1] == shapes[idx].vertices[selectedVertexIndex+1]
         ) {
           if (translationMode == "x") {
             shapes[idx].vertices[i] += x;
@@ -333,11 +333,11 @@ const execMovePoint = () => {
         }
       } else {
         if (translationMode == "x") {
-          if (shapes[idx].vertices[i] == selectedVertex[0]) {
+          if (shapes[idx].vertices[i] == shapes[idx].vertices[selectedVertexIndex]) {
             shapes[idx].vertices[i] += x;
           }
         } else {
-          if (shapes[idx].vertices[i + 1] == selectedVertex[1]) {
+          if (shapes[idx].vertices[i + 1] == shapes[idx].vertices[selectedVertexIndex+1]) {
             shapes[idx].vertices[i + 1] += x;
           }
         }
@@ -619,6 +619,7 @@ canvas.addEventListener(
         if (nearestPoint.index != 0) {
           selectedShapeId = nearestPoint.index;
           selectedVertex = nearestPoint.vertex;
+          selectedVertexIndex = getVertexIndex(shapes[getIndexById(selectedShapeId)].vertices, selectedVertex);
         }
 
         if (currentAction === "translation" || "move-point") {
@@ -871,6 +872,7 @@ const clearCanvas = () => {
   selectedVertex2 = [];
   selectedShapeId = 0;
   selectedVertex = 0;
+  selectedVertexIndex = 0;
   isDrawing = false;
 
   currentPolygonAction = "none";
