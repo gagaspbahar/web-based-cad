@@ -119,6 +119,7 @@ function drawcanvas() {
       renderCornerPoint(shapes[i].vertices);
     }
   }
+  updateSelectedShapeHtml()
 }
 
 
@@ -539,7 +540,7 @@ const uncheckActionRadio = () => {
 };
 
 const toggleAddVertex = () => {
-  uncheckActionRadio();
+  console.log(selectedShapeId)
   if (currentPolygonAction == "add") {
     currentPolygonAction = "none";
   } else {
@@ -548,7 +549,6 @@ const toggleAddVertex = () => {
 };
 
 const toggleRemoveVertex = () => {
-  uncheckActionRadio();
   if (currentPolygonAction == "remove") {
     currentPolygonAction = "none";
   } else {
@@ -602,6 +602,16 @@ const renderCornerPoint = (shape) => {
   }
 };
 
+const updateSelectedShapeHtml = () => {
+  selectedShapeHtml = document.getElementById("selected-shape");
+  idx = shapes.findIndex((shape) => shape.id == selectedShapeId);
+  if (idx == -1) {
+    selectedShapeHtml.innerHTML = "No shape selected";
+  } else {
+    selectedShapeHtml.innerHTML = `${selectedShapeId}, ${shapes[idx].type}`;
+  }
+}
+
 canvas.addEventListener(
   "mousedown",
   function (event) {
@@ -611,11 +621,20 @@ canvas.addEventListener(
 
     setShapeColor();
 
+    selectedShapeHtml = document.getElementById("selected-shape");
+
     // Rightclick
     if (event.button == 2) {
       if (isDrawing && currentShape == "polygon") {
+        selectedShapeId = 0
+        selectedVertex = []
         temporaryLine = [];
         isDrawing == false;
+      }
+      if (currentPolygonAction != "none" && currentAction == "none") {
+        currentPolygonAction = "none";
+        selectedShapeId = 0
+        selectedVertex = []
       }
     } else {
       // leftclick
@@ -805,7 +824,7 @@ canvas.addEventListener(
         }
       }
 
-      if (currentPolygonAction != "none") {
+      if (currentPolygonAction != "none" && currentAction == "none") {
         if (selectedShapeId == 0) {
           const nearestPoint = findNearestPoint(x, y);
           if (nearestPoint.index != 0) {
@@ -817,7 +836,7 @@ canvas.addEventListener(
           }
         } else if (shapes[selectedShapeId].type != "polygon") {
           selectedShapeId = 0;
-          selectedVertex = 0;
+          selectedVertex = [];
         } else {
           console.log(currentPolygonAction);
           if (currentPolygonAction == "add") {
